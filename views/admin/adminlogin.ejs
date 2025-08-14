@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPORTS FIT</title>
+      <!-- Favicon and Touch Icons  -->
+
+      <%-include('../layouts/admin/favicon.ejs')%>
+  <style>
+    /* Basic reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body, html {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f2f5; /* Lighter background for a modern look */
+    }
+
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .login-form {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px; /* More rounded corners */
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Larger and softer shadow */
+      width: 400px; /* Increase form width */
+      text-align: center;
+      transition: box-shadow 0.3s ease-in-out; /* Smooth shadow transition */
+    }
+
+    .login-form:hover {
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2); /* Shadow effect on hover */
+    }
+
+    .logo {
+      width: 120px; /* Adjust logo size as needed */
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px; /* Slightly more rounded input fields */
+      font-size: 16px; /* Larger text inside inputs */
+      transition: border-color 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #007bff; /* Highlight the border on focus */
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #f29200;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px; /* Slightly larger text on button */
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #26b7bc; /* Darker blue on hover */
+    }
+
+    /* Responsive Design for Mobile Devices */
+    @media (max-width: 480px) {
+      .login-form {
+        width: 90%; /* Full width on small screens */
+        padding: 30px;
+      }
+
+      .logo {
+        width: 100px; /* Slightly smaller logo on mobile */
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-form">
+      <img src="https://res.cloudinary.com/dvkoqvs8n/image/upload/v1753094051/Untitled_design_23_n4uaey.png" alt="Logo" class="logo"> <!-- Replace with your logo path -->
+      <form id="loginForm">
+        <input type="text" placeholder="Username" name="username" required id="username">
+        <input type="password" placeholder="Password" name="password" required id="password">
+        <button style="background-color: #EA2143;" type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+
+    
+    // Handle the login form submission
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault(); // Prevent form from refreshing the page
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        // Send the login request using fetch
+        const response = await fetch('/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          }),
+        });
+
+        const data = await response.json();
+
+        // Check for successful login or errors
+        if (response.ok) {
+          // Show success alert with SweetAlert2
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: 'Welcome to the admin dashboard!',
+            confirmButtonText: 'Go to Dashboard',
+          }).then(() => {
+            window.location.href = '/admin'; // Redirect to dashboard (change the path as needed)
+          });
+        } else {
+          // Show error alert with SweetAlert2
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: data.message || 'An unexpected error occurred.',
+            confirmButtonText: 'Try Again',
+          });
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'There was an issue with the server. Please try again later.',
+          confirmButtonText: 'OK',
+        });
+      }
+    });
+  </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>

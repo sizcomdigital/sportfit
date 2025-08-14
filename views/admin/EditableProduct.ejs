@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>RSA & NSB SPORTS</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+</head>
+
+<body class="body header-fixed">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20"
+                stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20"
+                stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20"
+                stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20"
+                stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+        <div id="pagee" class="clearfix">
+            <%-include('../layouts/admin/sideheader.ejs')%>
+
+                <main id="main">
+
+                    <section class="profile-dashboard">
+                        <div class="inner-header mb-40">
+                            <h3 class="title">All Tours</h3>
+
+
+
+
+                        </div>
+                        <div class="input-wrap">
+                            <label>Select your Category</label>
+                            <div class="nice-select" tabindex="0" id="categoryDropdown">
+                                <span class="current">Select Category</span>
+                                <ul class="list">
+                                    <li data-value="" class="option selected focus">Select Category</li>
+                                    <% categories.forEach(category => { %>
+                                        <li data-value="<%= category._id %>" class="option">
+                                            <%= category.name %>
+                                        </li>
+                                    <% }) %>
+                                </ul>
+                            </div>
+                            
+                            <!-- Hidden input to store the selected category ID -->
+                            <input type="hidden" id="selectedCategory" name="category" value=""
+                                style="margin-top: 10px;">
+                        </div>
+
+
+                        <div class="my-booking-wrap" style="margin-top: 10px;">
+                            <ul class="booking-table-title flex-three">
+                                <li>
+                                    <p>Description</p>
+                                </li>
+
+
+                            </ul>
+                            <ul id="tourList" class="booking-table-content">
+                                <% tours.forEach(tour=> { %>
+                                    <li class="flex-three">
+                                        <div class="booking-list flex-three">
+                                            <div class="image">
+                                                <img src="<%= tour.images[0] %>" alt="Tour Image">
+                                            </div>
+                                            <div class="content">
+                                                <p class="id">ID: #<%= tour.hashedId %>
+                                                </p>
+                                                <h6 class="title-booking"><a href="#">
+                                                        <%= tour.tourName %>
+                                                    </a></h6>
+                                                <p class="price">AED <%= tour.actualPrice %>
+                                                </p>
+                                            </div>
+                                            <button style="margin: 8px; font-weight: 100;"
+                                            class="date-gues toggle-offer"
+                                            data-id="<%= tour._id %>" 
+                                            aria-label="<%= tour.offer ? 'Remove from offer' : 'Mark as offer' %>">
+                                            <%= tour.offer ? 'Remove Offer' : 'Offer Tour' %>
+                                          </button>
+                                        </div>
+                                    </li>
+                                    <% }); %>
+                            </ul>
+
+
+
+                        </div>
+
+
+                    </section>
+
+                </main>
+
+                <%-include('../layouts/admin/footer.ejs')%>
+             
+
+                    <!-- Bottom -->
+        </div>
+
+    </div>
+    <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+
+
+    <!-- Javascript -->
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+
+    <script>
+        $(document).ready(function () {
+            // Ensure allTours is an array of objects and that category._id is available
+            const allTours = <%- JSON.stringify(tours) %>;  // Convert tours to an array and pass it correctly
+    
+            $('#categoryDropdown').on('click', 'li', function () {
+                const selectedCategoryId = $(this).data('value'); // Use data-value for selected category
+                // Update the category label to show selected category
+                $('#categoryDropdown .current').text($(this).text());
+    
+                // Filter tours based on the selected category ID
+                const filteredTours = selectedCategoryId
+                    ? allTours.filter(tour => tour.category._id.toString() === selectedCategoryId) // Match ObjectId correctly
+                    : allTours;
+    
+                // Clear existing tour list
+                $('#tourList').empty();
+    
+                // Group tours by category
+                const toursByCategory = filteredTours.reduce((acc, tour) => {
+                    if (!acc[tour.category._id]) {
+                        acc[tour.category._id] = [];
+                    }
+                    acc[tour.category._id].push(tour);
+                    return acc;
+                }, {});
+    
+                // Loop over the categories and display tours in each category
+                Object.keys(toursByCategory).forEach(categoryId => {
+                    const toursInCategory = toursByCategory[categoryId];
+    
+                    toursInCategory.forEach(tour => {
+                    const tourHTML = `<li class="flex-three" style="list-style: none; margin: 10px 0; padding: 0;">
+    <div class="booking-list flex-three" style="display: flex; align-items: center; gap: 15px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+        <input type="hidden" class="tour-id" value="${tour._id}">
+        <div class="image" style="flex: 0 0 80px;">
+            <img src="${tour.images[0]}" alt="Tour Image" style="width: 100%; height: auto; border-radius: 4px;">
+        </div>
+        <div class="content" style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 5px; margin-right: 15px;">
+            <h6 class="title-booking" style="margin: 0; font-size: 16px; font-weight: 600; color: #333;">
+                <a href="#" style="text-decoration: none; color: inherit;">${tour.tourName}</a>
+            </h6>
+            <p class="price" style="margin: 0; font-size: 14px; color: #555;">AED ${tour.actualPrice}</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button style="padding: 8px 12px; font-size: 14px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                ${toursInCategory.length}
+            </button>
+            <form class="update-tour-form" style="display: flex; align-items: center; gap: 5px; margin: 0;">
+                <input type="hidden" class="tour-id" value="${tour._id}">
+                <input type="number" name="priority" class="tour-input" placeholder="Enter priority" value="${tour.priority}" style="width: 100px; padding: 5px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px;">
+                <button type="submit" class="btn btn-secondary" style="padding: 5px 10px; font-size: 14px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Update
+                </button>
+            </form>
+        </div>
+    </div>
+</li>
+
+`
+
+    
+                        $('#tourList').append(tourHTML);
+                    });
+                });
+    
+                // Store the selected category ID in the hidden input
+                $('#selectedCategory').val(selectedCategoryId);
+            });
+    
+            // Optional: Automatically trigger a category change to display all tours initially
+            $('#categoryDropdown').find('li').first().click();
+        });
+    </script>
+    
+    <script>
+        $(document).on('submit', '.update-tour-form', function (e) {
+    e.preventDefault(); // Prevent the default form submission
+
+    const tourId = $(this).find('.tour-id').val(); // Get the tour ID from the hidden input
+    const priorityValue = parseInt($(this).find('[name="priority"]').val(), 10); // Get and parse the priority input value
+
+    if (isNaN(priorityValue)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Input',
+            text: 'Please enter a valid numeric value for priority.',
+        });
+        return;
+    }
+
+    const formData = { priority: priorityValue };
+
+    $.ajax({
+        url: `/admin/update-priority/${tourId}`, // Ensure this endpoint matches your backend route
+        method: 'PUT',
+        data: formData,
+        success: function (response) {
+            if (response.ok) {
+                Swal.fire({
+                   
+                    text: response.message || 'Tour priority updated successfully!',
+                });
+            } else {
+                Swal.fire({
+                  
+                    text: response.message || 'Failed to update tour priority.',
+                });
+            }
+        },
+        error: function (xhr, status, error) {
+            Swal.fire({
+                
+                text: error || 'An error occurred while updating the priority. Please try again.',
+            });
+        },
+    });
+});
+
+
+    </script>
+    
+
+
+</body>
+
+</html>

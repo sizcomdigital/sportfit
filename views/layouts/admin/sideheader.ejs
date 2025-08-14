@@ -1,0 +1,225 @@
+<style>.sidebar-dashboard {
+    height: 100vh; /* Full height of the viewport */
+    overflow-y: auto; /* Allows scrolling if content exceeds the viewport height */
+}
+
+.db-menu {
+    padding-right: 15px; /* Adds padding to the right to avoid content sticking to the edge */
+}
+
+.db-menu ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-title {
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.sidebar-dashboard a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+
+.sidebar-dashboard li {
+    margin-bottom: 15px;
+}
+
+.sidebar-dashboard i {
+    margin-right: 10px;
+}
+</style>
+
+<div class="sidebar-dashboard">
+    <div class="">
+        <a href="/admin"><img src="https://res.cloudinary.com/dvkoqvs8n/image/upload/v1753095328/Untitled_design_24_ipbxh1.png" alt="Logo" style="width: auto;"></a>
+    </div>
+    <div class="db-menu">
+        <ul>
+            <li>
+                <a href="/admin">
+                    <i style="color:#eb2444 ;" class="icon-Vector-9"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+             <li class="menu-title">
+                <span>Manage Category  </span>
+            </li>
+            <li>
+                <a href="/admin/category ">
+                    <i style="color:#eb2444 ;" class="icon-Group-91"></i>
+                    <span>Add Category </span>
+                </a>
+            </li>
+            <li>
+                <a href="/admin/allcategory ">
+                    <i style="color:#eb2444 ;" class="icon-Layer-2"></i>
+                    <span>All Category    </span>
+                </a>
+            </li>
+
+
+            
+             <li class="menu-title">
+                <span>Manage Brand  </span>
+            </li>
+            <li>
+                <a href="/admin/brand ">
+                    <i style="color:#eb2444 ;" class="icon-Group-91"></i>
+                    <span>Add Brand</span>
+                </a>
+            </li>
+            <li>
+                <a href="/admin/allbrand ">
+                    <i style="color:#eb2444 ;" class="icon-Layer-2"></i>
+                    <span>All Brands</span>
+                </a>
+            </li>
+
+
+            <!-- Manage Tours Section -->
+            <li class="menu-title">
+                <span>Manage Product</span>
+            </li>
+            <li>
+                <a href="/admin/addproduct">
+                    <i style="color:#eb2444 ;" class="icon-Group-91"></i>
+                    <span>Add Product</span>
+                </a>
+            </li>
+            <li>
+                <a href="/admin/allproducts">
+                    <i style="color:#eb2444 ;" class="icon-Layer-2"></i>
+                    <span>All Products</span>
+                </a>
+            </li>
+
+            
+
+            <li class="menu-title">
+                <span>All Transactions  </span>
+            </li>
+            <li>
+                <a href="/admin/transactions">
+                    <i style="color:#eb2444 ;" class="icon-Group-91"></i>
+                    <span>Transactions </span>
+                </a>
+            </li>
+         
+            
+
+        </ul>
+    </div>
+</div>
+<div class="has-dashboard">
+    <!-- Main Header -->
+    <header class="main-header flex">
+        <!-- Header Lower -->
+        <div id="header">
+
+            <div class="header-dashboard">
+                <div class="tf-container full">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="inner-container flex justify-space align-center">
+                                <!-- Logo Box -->
+                                <div class="header-search flex-three">
+                                    <div class="icon-bars">
+                                        <i class="icon-Vector3"></i>
+                                    </div>
+                                </div>
+                                <div class="header-account flex align-center">
+                                     
+                                    <div class="dropdown account">
+                                        <a type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <img src="/assets/images/page/avata.png" alt="image">
+                                        </a>
+                                        <ul class="dropdown-menu">
+                                          <li><a  href="#">Account</a></li>
+
+                                          <li><a href="javascript:void(0)" onclick="confirmLogout()">Logout</a></li>
+
+                                        </ul>
+                                    </div> 
+            
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Header Lower -->
+        <!-- Mobile Menu  -->
+        <div class="close-btn"><span class="icon flaticon-cancel-1"></span></div>
+        <div class="mobile-menu">
+            <div class="menu-backdrop"></div>
+            <nav class="menu-box">
+                <div class="nav-logo"><a href="/" >
+                        <img src="/assets/images/trip-arabia-dashboard.png" alt="" style="width: auto;"></a></div>
+                <div class="bottom-canvas">
+                    <div class="menu-outer">
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <!-- End Mobile Menu -->
+
+    </header>
+    <!-- End Main Header -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <script>
+        // Logout confirmation function
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You will be logged out!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, log me out!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Send AJAX request to logout
+                    fetch('/admin/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // Show success message and redirect
+                            Swal.fire(
+                                'Logged Out!',
+                                'You have been logged out successfully.',
+                                'success'
+                            ).then(() => {
+                                window.location.href = '/admin/login';
+                            });
+                        } else {
+                            // Handle error
+                            Swal.fire(
+                                'Error!',
+                                'Failed to log out. Please try again.',
+                                'error'
+                            );
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire(
+                            'Error!',
+                            'An error occurred. Please try again.',
+                            'error'
+                        );
+                    });
+                }
+            });
+        }
+    </script>

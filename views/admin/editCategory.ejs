@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+           <main id="main">
+                <section class="profile-dashboard">
+                    <div class="inner-header mb-40">
+                        <h3 class="title">Edit Category</h3>
+                        <p class="des">Update the details of this category below.</p>
+                    </div>
+
+                <form id="form-edit-category" class="form-add-tour">
+    <div class="widget-dash-board pr-256 mb-75">
+        <h4 class="title-add-tour mb-30">1. Category Information</h4>
+
+        <div class="input-wrap mb-30">
+            <label>Category Name</label>
+            <input 
+                type="text" 
+                name="name" 
+                placeholder="Enter Category Name" 
+                value="<%= category.categoryname %>" 
+                required
+            />
+        </div>
+
+        <div class="input-wrap mb-30">
+            <label>Subcategories</label>
+            <div id="subcategories-container">
+                <% if (category.subcategories && category.subcategories.length > 0) { %>
+                    <% category.subcategories.forEach(function(sub) { %>
+                        <div class="subcategory-input mb-2">
+                            <input type="text" name="subcategories" value="<%= sub %>" />
+                            <button style="background-color: #eb2444;"  type="button" class="remove-subcategory-btn">–</button>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="subcategory-input mb-2">
+                        <input type="text" name="subcategories" placeholder="Subcategory (optional)" />
+                        <button style="background-color: #eb2444;"  type="button" class="add-subcategory-btn">+</button>
+                    </div>
+                <% } %>
+            </div>
+            <button style="background-color: #eb2444;"  type="button" class="add-subcategory-btn mt-2">Add Subcategory</button>
+        </div>
+    </div>
+
+    <div class="input-wrap">
+        <button style="background-color:#eb2444 ;" type="submit" class="button-add">Update</button>
+        <button type="reset" class="button-add" style="background-color: grey;">Reset</button>
+        <a href="/admin/allcategories" class="button-add" style="background-color: grey; color: white;">Back</a>
+    </div>
+</form>
+
+                </section>
+            </main>
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script>
+    // Handle add/remove subcategory fields
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("add-subcategory-btn")) {
+            const container = document.getElementById("subcategories-container");
+            const div = document.createElement("div");
+            div.classList.add("subcategory-input", "mb-2");
+            div.innerHTML = `
+                <input type="text" name="subcategories" placeholder="Subcategory (e.g. Zumba)" />
+                <button style="background-color: #eb2444;"  type="button" class="remove-subcategory-btn">–</button>
+            `;
+            container.appendChild(div);
+        }
+
+        if (e.target.classList.contains("remove-subcategory-btn")) {
+            e.target.parentElement.remove();
+        }
+    });
+
+    // Handle form submission
+    document.getElementById("form-edit-category").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const name = this.name.value.trim();
+        const categoryId = "<%= category._id %>";
+
+        const subcategories = [];
+        document.querySelectorAll('input[name="subcategories"]').forEach(input => {
+            const val = input.value.trim();
+            if (val) subcategories.push(val);
+        });
+
+        if (!name) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Validation Error',
+                text: 'Category name cannot be empty',
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/categories/${categoryId}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ name, subcategories }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Category Updated',
+                    text: data.message || 'Category has been updated successfully.',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "/admin/allCategory";
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Update Failed',
+                    text: data.message || 'Failed to update the category.',
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Server Error',
+                text: 'An unexpected error occurred. Please try again later.',
+            });
+        }
+    });
+</script>
+
+
+
+
+
+
+
+</body>
+
+</html>

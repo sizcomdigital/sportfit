@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <!-- <link rel="stylesheet" href="/app/css/bootstrap-select.min.css"> -->
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+
+                <main id="main">
+                    <section class="profile-dashboard">
+                        <div class="inner-header mb-40">
+                            <h3 class="title">Dashboard</h3>
+                        </div>
+                        <div class="counter-grid-dashboard mb-70">
+                           
+                            <div class="counter-dashboard flex-three tf-countto">
+                                <div class="icon flex-five">
+                                    <i class="icon-heart-1"></i>
+                                </div>
+                                <div class="content">
+                                    <span>Total Brand </span>
+                                    <div class="number-counter plus" data-to="2351" data-speed="2000"
+                                        data-waypoint-active="yes"><%= brandCount%></div>
+                                </div>
+                            </div>
+                         
+                            <div class="counter-dashboard flex-three tf-countto">
+                                <div class="icon flex-five">
+                                    <i class="icon-heart-1"></i>
+                                </div>
+                                <div class="content">
+                                    <span>Total Category</span>
+                                    <div class="number-counter plus" data-to="2351" data-speed="2000"
+                                        data-waypoint-active="yes"><%= categoryCount%></div>
+                                </div>
+                            </div>
+                         
+
+                            
+                        </div>
+                       <br>
+                       <br>
+                       <br>
+                       <br>
+
+                    </section>
+
+                </main>
+
+                   <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+            
+        </div>
+        <!-- /#page -->   
+       
+    </div>
+
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+    <!-- Modal search-->
+
+
+
+    <!-- Javascript -->
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/bootstrap-select.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/countto.js"></script>
+    <script src="/app/js/apexcharts.js"></script>
+    <script src="/app/js/line-chart.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+
+</body>
+
+</html>

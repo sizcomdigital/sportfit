@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+  <main id="main">
+        <section class="profile-dashboard">
+          <div class="inner-header mb-40">
+            <h3 class="title">Add Brand</h3>
+            <p class="des">Fill out the details to add a new brand.</p>
+          </div>
+
+          <form id="form-add-brand" class="form-add-program" method="POST" enctype="multipart/form-data">
+            <div class="widget-dash-board pr-256 mb-75">
+              <h4 class="title-add-program mb-30">1. Brand Information</h4>
+
+              <div class="input-wrap mb-30">
+                <label>Enter Brand Name</label>
+                <input type="text" name="name" placeholder="Brand Name" required />
+              </div>
+
+              <div class="input-wrap mb-30">
+                <label>Upload Brand Logo</label>
+                <input type="file" name="logo" accept="image/*" required />
+              </div>
+            </div>
+
+            <div class="input-wrap">
+              <button style="background-color: #eb2444;" type="submit" class="button-add">Save Brand</button>
+            </div>
+          </form>
+        </section>
+      </main>
+
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+   
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+<script>
+    document.getElementById('form-add-brand').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('/admin/brand', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.redirected) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Brand added!',
+            text: 'Brand has been added successfully.'
+          }).then(() => {
+            window.location.href = response.url;
+          });
+        } else {
+          const result = await response.json();
+          Swal.fire({
+            icon: 'error',
+            title: 'Failed!',
+            text: result.message || 'Something went wrong.'
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Something went wrong while adding the brand.'
+        });
+      }
+    });
+  </script>
+
+
+            
+        
+
+
+
+</body>
+
+</html>

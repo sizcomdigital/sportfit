@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+    <style>
+  .spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+ <main id="main">
+  <section class="profile-dashboard">
+    <div class="inner-header mb-40">
+      <h3 class="title">Edit Product</h3>
+      <p class="des">Update the details of your product below.</p>
+    </div>
+
+    <form id="form-edit-product" class="form-add-tour" method="POST" enctype="multipart/form-data">
+      <div class="widget-dash-board pr-256 mb-75">
+        <h4 class="title-add-tour mb-30">1. Product Information</h4>
+
+        <!-- Product Name -->
+        <div class="input-wrap mb-45">
+          <label>Product Name</label>
+          <input type="text" name="productName" placeholder="Enter product name" value="<%= product.productName %>" required />
+        </div>
+
+        <!-- Description -->
+        <div class="input-wrap mb-45">
+          <label>Description</label>
+          <textarea name="description" id="description"><%= product.description %></textarea>
+        </div>
+
+        <!-- Key Features -->
+        <div id="key-features-section" class="input-wrap mb-45">
+          <label for="keyFeatures">Key Features:</label>
+          <% if (product.keyFeatures && product.keyFeatures.length > 0) { %>
+            <% product.keyFeatures.forEach(function(feature) { %>
+              <input type="text" name="keyFeatures" value="<%= feature %>" class="form-control mb-2" required>
+            <% }); %>
+          <% } else { %>
+            <input type="text" name="keyFeatures" class="form-control mb-2" required>
+          <% } %>
+          <button type="button" class="btn btn-sm btn-primary" onclick="addFeature()">+ Add More</button>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="input-wrap mb-45">
+          <label>Additional Info (comma separated)</label>
+          <input type="text" name="additionalInfo" id="additionalInfo" value="<%= product.additionalInfo.join(', ') %>" />
+        </div>
+
+        <!-- Delivery/Warranty/Installation -->
+        <div class="input-wrap mb-45">
+          <label>Delivery/Warranty/Installation</label>
+          <textarea name="deliveryWarrantyInstallation" id="deliveryWarrantyInstallation"><%= product.deliveryWarrantyInstallation %></textarea>
+        </div>
+
+        <!-- Status -->
+        <div class="input-wrap mb-45">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="in stock" <%= product.status === 'in stock' ? 'selected' : '' %>>In Stock</option>
+            <option value="out of stock" <%= product.status === 'out of stock' ? 'selected' : '' %>>Out of Stock</option>
+          </select>
+        </div>
+
+        <!-- Brand -->
+        <div class="input-wrap mb-45">
+          <label for="brand">Brand:</label>
+          <select name="brand" id="brand" required>
+            <% brands.forEach(brand => { %>
+              <option value="<%= brand._id %>" <%= String(brand._id) === String(product.brand) ? 'selected' : '' %>><%= brand.name %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <!-- Product Price -->
+        <div class="input-wrap mb-45">
+          <label>Product Price</label>
+          <input type="number" name="price" placeholder="Enter product price" min="0" step="0.01" value="<%= product.price %>" required>
+        </div>
+
+        <!-- Existing Images -->
+        <div class="input-wrap mb-45">
+          <label>Existing Images</label>
+          <% product.images.forEach((img) => { %>
+            <div class="upload-image mb-3">
+              <img src="<%= img %>" style="height: 120px; width: 120px;" />
+              <button type="button" class="button-add delete-image" data-image="<%= img %>" data-id="<%= product._id %>" style="background-color: red; color: white; margin-top: 10px;">Remove Image</button>
+            </div>
+          <% }); %>
+        </div>
+
+        <!-- New Image Upload -->
+        <div class="input-wrap mb-45">
+          <label>Add More Images</label>
+          <input type="file" name="images" multiple accept="image/*" />
+          <p><small>Upload JPG or PNG (multiple allowed)</small></p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="input-wrap">
+          <button id="updateBtn" style="background-color: #eb2444;" type="submit" class="button-add">
+            <span id="btnText">Update</span>
+            <span id="btnSpinner" class="spinner" style="display: none;"></span>
+          </button>
+          <button type="reset" class="button-add" style="background-color: grey;">Reset</button>
+          <a href="/admin/allproducts" class="button-add" style="background-color: grey; color: white;">Back</a>
+        </div>
+      </div>
+    </form>
+  </section>
+</main>
+
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tiny.cloud/1/d0sfnydpbdp81653kdt6qhoxiodrko9rvudth8lutmiv847n/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+<script>
+  tinymce.init({
+    selector: '#description , #deliveryWarrantyInstallation, #additionalInfo',
+    menubar: false,
+    plugins: 'link lists image code',
+    toolbar: 'undo redo | bold italic underline | bullist numlist | code',
+  });
+</script>
+
+<script>
+  document.getElementById("form-edit-product").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    tinymce.triggerSave(); // Sync TinyMCE
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const productId = "<%= product._id %>";
+
+    try {
+      const response = await fetch(`/admin/products/${productId}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Product Updated',
+          timer: 1500,
+          text: data.message || 'The product has been updated successfully.',
+        }).then(() => {
+          window.location.href = "/admin/allproducts";
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Update Failed',
+          text: data.message || "Something went wrong.",
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "An unexpected error occurred. Please try again later.",
+      });
+    }
+  });
+</script>
+
+<script>
+  function addFeature() {
+    const section = document.getElementById('key-features-section');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'keyFeatures';
+    input.className = 'form-control mb-2';
+    input.required = true;
+    section.insertBefore(input, section.lastElementChild);
+  }
+</script>
+
+<script>
+  document.querySelectorAll('.delete-image').forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const confirmed = confirm('Are you sure you want to delete this image?');
+      if (!confirmed) return;
+
+      const imageUrl = e.target.getAttribute('data-image');
+      const id = e.target.getAttribute('data-id');
+
+      try {
+        const res = await fetch(`/admin/products/img/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(data.message);
+          e.target.closest('.upload-image').remove();
+        } else {
+          alert(data.message || 'Something went wrong');
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        alert('Error deleting image');
+      }
+    });
+  });
+</script>
+
+<script>
+  const updateBtn = document.getElementById('updateBtn');
+  const btnText = document.getElementById('btnText');
+  const btnSpinner = document.getElementById('btnSpinner');
+
+  updateBtn?.closest('form')?.addEventListener('submit', function () {
+    updateBtn.disabled = true;
+    btnText.textContent = 'Updating...';
+    btnSpinner.style.display = 'inline-block';
+  });
+</script>
+
+
+</body>
+
+</html>

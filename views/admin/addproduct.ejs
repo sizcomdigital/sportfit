@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+
+    <style>
+      .spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    </style>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+              <main id="main">
+  <section class="profile-dashboard">
+    <div class="inner-header mb-40">
+      <h3 class="title">Add Product</h3>
+      <p class="des">Fill out the details to add a new product.</p>
+    </div>
+    <form id="form-add-product" class="form-add-product" enctype="multipart/form-data" method="POST">
+      <!-- Step 1: Product Information -->
+      <div class="widget-dash-board pr-256 mb-75">
+        <h4 class="title-add-program mb-30">1. Product Information</h4>
+
+        <div class="input-wrap mb-45">
+          <label>Product Name</label>
+          <input type="text" name="productName" placeholder="Enter product name" required>
+        </div>
+
+        <div class="input-wrap mb-45">
+          <label>Key Features</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="featureInput" placeholder="Add a feature" class="form-control">
+            <button type="button" class="btn btn-primary" id="addFeatureBtn">Add</button>
+          </div>
+          <div id="featureList"></div>
+        </div>
+
+        <div class="input-wrap mb-45">
+          <label>Description</label>
+          <textarea name="description" id="descriptionEditor"></textarea>
+        </div>
+
+        <div class="input-wrap mb-45">
+          <label>Additional Info</label>
+          <textarea name="additionalInfo" id="additionalInfoEditor"></textarea>
+        </div>
+
+        <div class="input-wrap mb-45">
+          <label>Delivery, Warranty & Installation</label>
+          <textarea name="deliveryWarrantyInstallation" id="deliveryEditor"></textarea>
+        </div>
+
+        <div class="input-wrap mb-45">
+          <label>Status</label>
+          <select name="status" required>
+            <option value="in stock">In Stock</option>
+            <option value="out of stock">Out of Stock</option>
+          </select>
+        </div>
+
+        <div class="input-wrap mb-45">
+         <label for="brand">Brand:</label>
+<select name="brand" id="brand" required>
+  <% brands.forEach(brand => { %>
+    <option value="<%= brand._id %>"><%= brand.name %></option>
+  <% }) %>
+</select>
+
+        </div>
+        <div class="input-wrap mb-45">
+          <label>Product Price</label>
+          <input type="number" name="price" placeholder="Enter product price" min="0" step="0.01" required>
+        </div>
+      </div>
+
+      <!-- Step 2: Upload Media -->
+      <div class="widget-dash-board pr-256 mb-75">
+        <h4 class="title-add-program mb-30">2. Upload Media</h4>
+        <div class="input-wrap mb-45">
+          <label>Upload Product Images</label>
+          <input type="file" name="images" accept="image/*" multiple required>
+        </div>
+        <p><span class="text-main">*</span> Supported formats: JPG, PNG (max 2MB each)</p>
+      </div>
+
+      <!-- Submit Button -->
+    <div class="input-wrap">
+  <button id="saveBtn" style="background-color: #eb2444;" type="submit" class="button-add">
+    <span id="btnText">Save Product</span>
+    <span id="spinner" class="spinner" style="display: none;"></span>
+  </button>
+</div>
+
+    </form>
+  </section>
+</main>
+
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+   
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+ <script src="https://cdn.tiny.cloud/1/d0sfnydpbdp81653kdt6qhoxiodrko9rvudth8lutmiv847n/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+<script>
+  tinymce.init({
+    selector: '#descriptionEditor, #additionalInfoEditor, #deliveryEditor',
+    height: 300,
+    menubar: false,
+    plugins: 'lists link image code',
+    toolbar: 'undo redo | formatselect | bold italic underline | alignleft aligncenter alignright | bullist numlist | code',
+  });
+</script>
+
+<script>
+  // Add key features dynamically
+  document.getElementById('addFeatureBtn').addEventListener('click', function () {
+    const input = document.getElementById('featureInput');
+    const value = input.value.trim();
+    if (!value) return;
+
+    const container = document.getElementById('featureList');
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+        <input type="text" name="keyFeatures" value="${value}" readonly class="form-control" style="width: auto;">
+        <button type="button" class="btn btn-danger btn-sm">Remove</button>
+      </div>
+    `;
+    div.querySelector('button').addEventListener('click', () => div.remove());
+    container.appendChild(div);
+    input.value = '';
+  });
+
+  // Form submission handler
+  document.getElementById('form-add-product').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    tinymce.triggerSave();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch('/admin/products', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Product added successfully!',
+          text: result.message,
+        }).then(() => {
+          form.reset();
+          window.location.href = "/admin/allproducts";
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: result.message || 'Something went wrong.',
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Server error occurred while submitting the product.',
+      });
+    }
+  });
+</script>
+
+<script>
+  document.querySelector("form").addEventListener("submit", function (e) {
+    const saveBtn = document.getElementById("saveBtn");
+    const spinner = document.getElementById("spinner");
+    const btnText = document.getElementById("btnText");
+    saveBtn.disabled = true;
+    spinner.style.display = "inline-block";
+    btnText.textContent = "Saving...";
+  });
+</script>
+     
+        
+
+
+
+</body>
+
+</html>
