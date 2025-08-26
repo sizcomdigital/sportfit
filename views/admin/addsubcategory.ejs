@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+<main id="main">
+    <section class="profile-dashboard">
+        <div class="inner-header mb-40">
+            <h3 class="title">Add Child Category</h3>
+            <p class="des">Choose a main category, then a subcategory, and add a child subcategory.</p>
+        </div>
+
+        <form id="form-add-child-category" class="form-add-program" method="POST">
+            <div class="widget-dash-board pr-256 mb-75">
+                <h4 class="title-add-program mb-30">1. Category Information</h4>
+
+                <!-- Main Category -->
+               <div class="input-wrap mb-30">
+    <label>Select Main Category</label>
+    <select id="mainCategory" name="parentCategory" required>
+        <option value="">-- Select Main Category --</option>
+        <% categories.forEach(cat => { %>
+            <option value="<%= cat._id %>"><%= cat.categoryname %></option>
+        <% }) %>
+    </select>
+</div>
+
+<!-- SubCategory -->
+<div class="input-wrap mb-30">
+    <label>Select SubCategory</label>
+    <select id="subCategory" name="parentSubCategory" required>
+        <option value="">-- Select SubCategory --</option>
+        <% subcategories.forEach(sub => { %>
+            <option value="<%= sub._id %>" data-parent="<%= sub.parentCategory._id %>">
+                <%= sub.subcategoryname %> (from <%= sub.parentCategory.categoryname %>)
+            </option>
+        <% }) %>
+    </select>
+</div>
+
+                <!-- Child SubCategory -->
+                <div class="input-wrap mb-30">
+                    <label>Enter Child SubCategory Name</label>
+                    <input type="text" id="childCategoryName" name="subcategoryname" placeholder="e.g. Morning Yoga" required />
+                </div>
+            </div>
+
+            <div class="input-wrap">
+                <button style="background-color: #eb2444;" type="submit" class="button-add">Save Child Category</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+   
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+<script>
+    // Fetch and populate main categories on page load
+    async function loadMainCategories() {
+        try {
+            const response = await fetch('/admin/allcategory');
+            const data = await response.json();
+
+            const mainCategorySelect = document.getElementById('mainCategory');
+            mainCategorySelect.innerHTML = `<option value="">-- Select Main Category --</option>`;
+
+            data.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat._id;
+                option.textContent = cat.categoryname;
+                mainCategorySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error loading categories:", error);
+        }
+    }
+
+    // Fetch subcategories when main category changes
+   document.getElementById('mainCategory').addEventListener('change', (e) => {
+    const selectedCategoryId = e.target.value;
+    const subCategorySelect = document.getElementById('subCategory');
+
+    // Reset dropdown
+    subCategorySelect.innerHTML = `<option value="">-- Select SubCategory --</option>`;
+
+    if (!selectedCategoryId) return;
+
+    // Get all <option> elements with data-parent
+    document.querySelectorAll('#subCategory option[data-parent]').forEach(opt => {
+        if (opt.getAttribute('data-parent') === selectedCategoryId) {
+            subCategorySelect.appendChild(opt.cloneNode(true));
+        }
+    });
+});
+
+
+    // Handle form submission
+    document.getElementById('form-add-child-category').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const parentCategory = document.getElementById('mainCategory').value;
+        const parentSubCategory = document.getElementById('subCategory').value;
+        const subcategoryname = document.getElementById('childCategoryName').value.trim();
+
+        if (!parentCategory || !parentSubCategory || !subcategoryname) {
+            Swal.fire({ icon: 'error', title: 'Error!', text: 'Please fill all fields' });
+            return;
+        }
+
+        const payload = { subcategoryname, parentCategory, parentSubCategory };
+
+        try {
+            const response = await fetch('/admin/subcategory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Child SubCategory added!',
+                    text: result.message,
+                }).then(() => {
+                    event.target.reset();
+                    document.getElementById('subCategory').innerHTML = `<option value="">-- Select SubCategory --</option>`;
+                });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Failed!', text: result.message || 'Something went wrong.' });
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            Swal.fire({ icon: 'error', title: 'Error!', text: 'Something went wrong while adding the child category.' });
+        }
+    });
+
+    // Load main categories on page load
+    loadMainCategories();
+</script>
+
+
+            
+        
+
+
+
+</body>
+
+</html>

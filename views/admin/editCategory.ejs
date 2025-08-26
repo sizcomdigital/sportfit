@@ -36,58 +36,77 @@
             <%-include('../layouts/admin/sideheader.ejs')%>
             
                 <!-- End Main Header -->
-           <main id="main">
-                <section class="profile-dashboard">
-                    <div class="inner-header mb-40">
-                        <h3 class="title">Edit Category</h3>
-                        <p class="des">Update the details of this category below.</p>
-                    </div>
-
-                <form id="form-edit-category" class="form-add-tour">
-    <div class="widget-dash-board pr-256 mb-75">
-        <h4 class="title-add-tour mb-30">1. Category Information</h4>
-
-        <div class="input-wrap mb-30">
-            <label>Category Name</label>
-            <input 
-                type="text" 
-                name="name" 
-                placeholder="Enter Category Name" 
-                value="<%= category.categoryname %>" 
-                required
-            />
+          <main id="main">
+    <section class="profile-dashboard">
+        <div class="inner-header mb-40">
+            <h3 class="title">Edit Category</h3>
+            <p class="des">Update the details of this category below.</p>
         </div>
 
-        <div class="input-wrap mb-30">
-            <label>Subcategories</label>
-            <div id="subcategories-container">
-                <% if (category.subcategories && category.subcategories.length > 0) { %>
-                    <% category.subcategories.forEach(function(sub) { %>
-                        <div class="subcategory-input mb-2">
-                            <input type="text" name="subcategories" value="<%= sub %>" />
-                            <button style="background-color: #eb2444;"  type="button" class="remove-subcategory-btn">–</button>
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div class="subcategory-input mb-2">
-                        <input type="text" name="subcategories" placeholder="Subcategory (optional)" />
-                        <button style="background-color: #eb2444;"  type="button" class="add-subcategory-btn">+</button>
+        <form id="form-edit-category" class="form-add-tour">
+            <div class="widget-dash-board pr-256 mb-75">
+                <h4 class="title-add-tour mb-30">1. Category Information</h4>
+
+                <!-- Main Category -->
+                <div class="input-wrap mb-30">
+                    <label>Category Name</label>
+                    <input 
+                        type="text" 
+                        name="categoryname" 
+                        placeholder="Enter Category Name" 
+                        value="<%= category.categoryname %>" 
+                        required
+                    />
+                </div>
+
+                <!-- Subcategories + Children -->
+                <div class="input-wrap mb-30">
+                    <label>Subcategories & Child Categories</label>
+                    <div id="subcategories-container">
+                        <% if (category.subcategories && category.subcategories.length > 0) { %>
+                            <% category.subcategories.forEach(function(sub, i) { %>
+                                <div class="subcategory-block mb-4 p-2 border rounded">
+                                    <input 
+                                        type="text" 
+                                        name="subcategory-name" 
+                                        value="<%= sub.name %>" 
+                                        placeholder="Subcategory Name" 
+                                        required
+                                    />
+                                    <button type="button" class="remove-subcategory-btn" style="background:#eb2444;">–</button>
+
+                                    <div class="child-subcategories mt-2">
+                                        <% if (sub.children && sub.children.length > 0) { %>
+                                            <% sub.children.forEach(function(child) { %>
+                                                <div class="child-input mb-2">
+                                                    <input 
+                                                        type="text" 
+                                                        name="child-subcategory" 
+                                                        value="<%= child.name %>" 
+                                                        placeholder="Child Subcategory"
+                                                    />
+                                                    <button type="button" class="remove-child-btn" style="background:#eb2444;">–</button>
+                                                </div>
+                                            <% }) %>
+                                        <% } %>
+                                    </div>
+                                    <button type="button" class="add-child-btn" style="background:#eb2444;">+ Add Child</button>
+                                </div>
+                            <% }) %>
+                        <% } %>
                     </div>
-                <% } %>
+                    <button type="button" id="add-subcategory-btn" style="background:#eb2444;" class="mt-2">+ Add Subcategory</button>
+                </div>
             </div>
-            <button style="background-color: #eb2444;"  type="button" class="add-subcategory-btn mt-2">Add Subcategory</button>
-        </div>
-    </div>
 
-    <div class="input-wrap">
-        <button style="background-color:#eb2444 ;" type="submit" class="button-add">Update</button>
-        <button type="reset" class="button-add" style="background-color: grey;">Reset</button>
-        <a href="/admin/allcategories" class="button-add" style="background-color: grey; color: white;">Back</a>
-    </div>
-</form>
-
-                </section>
-            </main>
+            <div class="input-wrap">
+                <button style="background-color:#eb2444;" type="submit" class="button-add">Update</button>
+                <button type="reset" class="button-add" style="background-color: grey;">Reset</button>
+                <a href="/admin/allcategories" class="button-add" style="background-color: grey; color: white;">Back</a>
+            </div>
+        </form>
+    </section>
+</main>
 
                 <%-include('../layouts/admin/footer.ejs')%>
                 <!-- Bottom -->
@@ -128,20 +147,36 @@
 
 
 <script>
-    // Handle add/remove subcategory fields
-    document.addEventListener("click", function (e) {
-        if (e.target.classList.contains("add-subcategory-btn")) {
-            const container = document.getElementById("subcategories-container");
-            const div = document.createElement("div");
-            div.classList.add("subcategory-input", "mb-2");
-            div.innerHTML = `
-                <input type="text" name="subcategories" placeholder="Subcategory (e.g. Zumba)" />
-                <button style="background-color: #eb2444;"  type="button" class="remove-subcategory-btn">–</button>
-            `;
-            container.appendChild(div);
-        }
+    // Add/remove subcategories
+    document.getElementById("add-subcategory-btn").addEventListener("click", function () {
+        const container = document.getElementById("subcategories-container");
+        const div = document.createElement("div");
+        div.classList.add("subcategory-block", "mb-4", "p-2", "border", "rounded");
+        div.innerHTML = `
+            <input type="text" name="subcategory-name" placeholder="Subcategory Name" required />
+            <button type="button" class="remove-subcategory-btn" style="background:#eb2444;">–</button>
+            <div class="child-subcategories mt-2"></div>
+            <button type="button" class="add-child-btn" style="background:#eb2444;">+ Add Child</button>
+        `;
+        container.appendChild(div);
+    });
 
+    // Handle dynamic clicks (event delegation)
+    document.addEventListener("click", function (e) {
         if (e.target.classList.contains("remove-subcategory-btn")) {
+            e.target.parentElement.remove();
+        }
+        if (e.target.classList.contains("add-child-btn")) {
+            const childContainer = e.target.previousElementSibling;
+            const childDiv = document.createElement("div");
+            childDiv.classList.add("child-input", "mb-2");
+            childDiv.innerHTML = `
+                <input type="text" name="child-subcategory" placeholder="Child Subcategory" />
+                <button type="button" class="remove-child-btn" style="background:#eb2444;">–</button>
+            `;
+            childContainer.appendChild(childDiv);
+        }
+        if (e.target.classList.contains("remove-child-btn")) {
             e.target.parentElement.remove();
         }
     });
@@ -150,31 +185,32 @@
     document.getElementById("form-edit-category").addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const name = this.name.value.trim();
+        const categoryname = this.categoryname.value.trim();
         const categoryId = "<%= category._id %>";
 
-        const subcategories = [];
-        document.querySelectorAll('input[name="subcategories"]').forEach(input => {
-            const val = input.value.trim();
-            if (val) subcategories.push(val);
-        });
-
-        if (!name) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Validation Error',
-                text: 'Category name cannot be empty',
-            });
+        if (!categoryname) {
+            Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Category name cannot be empty' });
             return;
         }
+
+        // Build subcategory structure
+        const subcategories = [];
+        document.querySelectorAll(".subcategory-block").forEach(subBlock => {
+            const subName = subBlock.querySelector('input[name="subcategory-name"]').value.trim();
+            if (subName) {
+                const children = [];
+                subBlock.querySelectorAll('input[name="child-subcategory"]').forEach(c => {
+                    if (c.value.trim()) children.push(c.value.trim());
+                });
+                subcategories.push({ name: subName, children });
+            }
+        });
 
         try {
             const response = await fetch(`/admin/categories/${categoryId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name, subcategories }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ categoryname, subcategories }),
             });
 
             const data = await response.json();
@@ -183,30 +219,21 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Category Updated',
-                    text: data.message || 'Category has been updated successfully.',
+                    text: data.message || 'Category updated successfully.',
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
                     window.location.href = "/admin/allCategory";
                 });
             } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Update Failed',
-                    text: data.message || 'Failed to update the category.',
-                });
+                Swal.fire({ icon: 'error', title: 'Update Failed', text: data.message || 'Failed to update category.' });
             }
         } catch (error) {
             console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Server Error',
-                text: 'An unexpected error occurred. Please try again later.',
-            });
+            Swal.fire({ icon: 'error', title: 'Server Error', text: 'Unexpected error occurred. Please try again.' });
         }
     });
 </script>
-
 
 
 

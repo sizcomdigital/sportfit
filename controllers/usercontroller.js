@@ -6,10 +6,12 @@ const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const Product = require('../models/productModel'); 
-const Cart = require("../models/cartModel")
+const Cart = require("../models/cartModel");
+const Address = require("../models/addressModel")
+const Category = require("../models/categoryModel")
 // const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);      
 const Transaction = require("../models/Transaction");
-const CourtTransaction = require("../models/CourtTransaction");
+
 const signupValidationSchema = Joi.object({
     fullname: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
@@ -394,6 +396,119 @@ addToCart : async (req, res) => {
     });
   }
 },
+updateCartQuantity: async (req, res) => {
+    try {
+      const { userId, productId, quantity } = req.body;
+
+      if (!userId || !productId) {
+        return res.status(400).json({ message: "userId and productId are required" });
+      }
+
+      const parsedQuantity = Number(quantity);
+      if (parsedQuantity < 1) {
+        return res.status(400).json({ message: "Quantity must be at least 1" });
+      }
+
+      let cart = await Cart.findOne({ user: userId });
+      if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+      const productIndex = cart.products.findIndex(
+        p => p.product.toString() === productId
+      );
+
+      if (productIndex === -1) {
+        return res.status(404).json({ message: "Product not in cart" });
+      }
+
+      cart.products[productIndex].quantity = parsedQuantity;
+
+      cart.totalPrice = cart.products.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+
+      await cart.save();
+
+      res.status(200).json({
+        message: "Cart quantity updated successfully",
+        cart
+      });
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  },
+
+  // ✅ Remove Product from Cart
+  removeFromCart: async (req, res) => {
+    try {
+      const { userId, productId } = req.body;
+
+      if (!userId || !productId) {
+        return res.status(400).json({ message: "userId and productId are required" });
+      }
+
+      let cart = await Cart.findOne({ user: userId });
+      if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+      cart.products = cart.products.filter(
+        p => p.product.toString() !== productId
+      );
+
+      cart.totalPrice = cart.products.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+
+      await cart.save();
+
+      res.status(200).json({
+        message: "Product removed from cart successfully",
+        cart
+      });
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  },
+usercheckout: async (req, res) => {
+    if (!req.user) {
+        return res.redirect("/register");
+    }
+
+    try {
+        const categories = await Category.find(); 
+        const cart = await Cart.findOne({ user: req.user._id }).populate("products.product");
+        const addresses = await Address.find({ userId: req.user._id });
+
+        if (!cart || cart.products.length === 0) {
+            return res.render("user/checkout", { 
+                categories, 
+                cart: null, 
+                totalPrice: 0, 
+                addresses, 
+                success: req.query.success || null
+            });
+        }
+
+        let totalPrice = 0;
+        cart.products.forEach(item => {
+            totalPrice += item.price * item.quantity;
+        });
+
+        res.render("user/checkout", { 
+            categories, 
+            cart, 
+            totalPrice, 
+            addresses, 
+            success: req.query.success || null 
+        });
+    } catch (error) {
+        console.error("Error fetching cart:", error.message);
+        res.status(500).send("Internal Server Error");
+    }
+},
+
 
   
  stripeWebhookHandler: async (req, res) => {

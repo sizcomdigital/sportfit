@@ -37,6 +37,7 @@ router.get("/editproducts", verifyToken, admincontroller.allEditableProducts);
 // --------------------------------------------------------------
 
 
+router.get("/categories/:id/subcategories", admincontroller.getSubcategories);
 
 router.get("/category", verifyToken, admincontroller.getcategory);
 router.post("/category", verifyToken, admincontroller.postgetcategory);

@@ -57,22 +57,52 @@
             <%-include('../layouts/admin/sideheader.ejs')%>
             
                 <!-- End Main Header -->
-              <main id="main">
+<main id="main">
   <section class="profile-dashboard">
     <div class="inner-header mb-40">
       <h3 class="title">Add Product</h3>
       <p class="des">Fill out the details to add a new product.</p>
     </div>
     <form id="form-add-product" class="form-add-product" enctype="multipart/form-data" method="POST">
+      
       <!-- Step 1: Product Information -->
       <div class="widget-dash-board pr-256 mb-75">
         <h4 class="title-add-program mb-30">1. Product Information</h4>
 
+        <!-- Product Name -->
         <div class="input-wrap mb-45">
           <label>Product Name</label>
           <input type="text" name="productName" placeholder="Enter product name" required>
         </div>
 
+        <!-- ✅ Main Category -->
+        <div class="input-wrap mb-45">
+  <label for="category">Main Category</label>
+  <select name="category" id="category" required>
+    <option value="">-- Select Category --</option>
+    <% categories.forEach(cat => { %>
+      <option value="<%= cat._id %>"><%= cat.categoryname %></option>
+    <% }) %>
+  </select>
+</div>
+
+<!-- ✅ Sub Category -->
+<div class="input-wrap mb-45">
+  <label for="subcategory">Subcategory</label>
+  <select name="subcategory" id="subcategory">
+    <option value="">-- Select Subcategory (optional) --</option>
+  </select>
+</div>
+
+<!-- ✅ Child Subcategory -->
+<div class="input-wrap mb-45">
+  <label for="childSubcategory">Child Subcategory</label>
+  <select name="childSubcategory" id="childSubcategory">
+    <option value="">-- Select Child Subcategory (optional) --</option>
+  </select>
+</div>
+
+        <!-- Key Features -->
         <div class="input-wrap mb-45">
           <label>Key Features</label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -106,14 +136,14 @@
         </div>
 
         <div class="input-wrap mb-45">
-         <label for="brand">Brand:</label>
-<select name="brand" id="brand" required>
-  <% brands.forEach(brand => { %>
-    <option value="<%= brand._id %>"><%= brand.name %></option>
-  <% }) %>
-</select>
-
+          <label for="brand">Brand:</label>
+          <select name="brand" id="brand" required>
+            <% brands.forEach(brand => { %>
+              <option value="<%= brand._id %>"><%= brand.name %></option>
+            <% }) %>
+          </select>
         </div>
+
         <div class="input-wrap mb-45">
           <label>Product Price</label>
           <input type="number" name="price" placeholder="Enter product price" min="0" step="0.01" required>
@@ -130,14 +160,13 @@
         <p><span class="text-main">*</span> Supported formats: JPG, PNG (max 2MB each)</p>
       </div>
 
-      <!-- Submit Button -->
-    <div class="input-wrap">
-  <button id="saveBtn" style="background-color: #eb2444;" type="submit" class="button-add">
-    <span id="btnText">Save Product</span>
-    <span id="spinner" class="spinner" style="display: none;"></span>
-  </button>
-</div>
-
+      <!-- Submit -->
+      <div class="input-wrap">
+        <button id="saveBtn" style="background-color: #eb2444;" type="submit" class="button-add">
+          <span id="btnText">Save Product</span>
+          <span id="spinner" class="spinner" style="display: none;"></span>
+        </button>
+      </div>
     </form>
   </section>
 </main>
@@ -193,7 +222,64 @@
 </script>
 
 <script>
-  // Add key features dynamically
+  // ✅ Load Subcategories when Main Category changes
+ document.getElementById("category").addEventListener("change", async function () {
+    const categoryId = this.value;
+    const subcategorySelect = document.getElementById("subcategory");
+    const childSubcategorySelect = document.getElementById("childSubcategory");
+
+    subcategorySelect.innerHTML = `<option value="">-- Select Subcategory (optional) --</option>`;
+    childSubcategorySelect.innerHTML = `<option value="">-- Select Child Subcategory (optional) --</option>`;
+
+    if (!categoryId) return;
+
+    try {
+      const response = await fetch(`/admin/categories/${categoryId}/subcategories`);
+      const data = await response.json();
+
+      if (data.subcategories && data.subcategories.length > 0) {
+        data.subcategories.forEach(sub => {
+          const option = document.createElement("option");
+          option.value = sub.name;   // Use name since schema stores subcategories by name
+          option.textContent = sub.name;
+          subcategorySelect.appendChild(option);
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load subcategories", err);
+    }
+  });
+
+  // ✅ Load Child Subcategories when Subcategory changes
+  document.getElementById("subcategory").addEventListener("change", async function () {
+    const categoryId = document.getElementById("category").value;
+    const selectedSubcategory = this.value;
+    const childSubcategorySelect = document.getElementById("childSubcategory");
+
+    childSubcategorySelect.innerHTML = `<option value="">-- Select Child Subcategory (optional) --</option>`;
+
+    if (!categoryId || !selectedSubcategory) return;
+
+    try {
+      const response = await fetch(`/admin/categories/${categoryId}/subcategories`);
+      const data = await response.json();
+
+      const sub = data.subcategories.find(s => s.name === selectedSubcategory);
+      if (sub && sub.children && sub.children.length > 0) {
+        sub.children.forEach(child => {
+          const option = document.createElement("option");
+          option.value = child.name;
+          option.textContent = child.name;
+          childSubcategorySelect.appendChild(option);
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load child subcategories", err);
+    }
+  });
+
+
+  // ✅ Features (same as before)
   document.getElementById('addFeatureBtn').addEventListener('click', function () {
     const input = document.getElementById('featureInput');
     const value = input.value.trim();
@@ -212,7 +298,7 @@
     input.value = '';
   });
 
-  // Form submission handler
+  // ✅ Submit form
   document.getElementById('form-add-product').addEventListener('submit', async (event) => {
     event.preventDefault();
     tinymce.triggerSave();
@@ -251,10 +337,9 @@
       });
     }
   });
-</script>
 
-<script>
-  document.querySelector("form").addEventListener("submit", function (e) {
+  // Button state
+  document.querySelector("form").addEventListener("submit", function () {
     const saveBtn = document.getElementById("saveBtn");
     const spinner = document.getElementById("spinner");
     const btnText = document.getElementById("btnText");
@@ -263,7 +348,6 @@
     btnText.textContent = "Saving...";
   });
 </script>
-     
         
 
 

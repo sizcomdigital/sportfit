@@ -3,13 +3,13 @@ const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const Brand = require("../models/brandModel")
 const crypto = require("crypto");
-
+const Category = require("../models/categoryModel")
 const mongoose = require("mongoose");
 
 const path = require("path");
 
 module.exports = {
-  addProduct: async (req, res) => {
+addProduct: async (req, res) => {
   const {
     productName,
     keyFeatures,
@@ -18,48 +18,76 @@ module.exports = {
     deliveryWarrantyInstallation,
     status,
     brand,
-    price
+    price,
+    category,          // main category id
+    subcategory,       // subcategory name
+    childSubcategory   // child subcategory name
   } = req.body;
 
   let images = [];
 
   try {
     // Validate required fields
-    if (!productName?.trim() || !description?.trim() || !deliveryWarrantyInstallation?.trim() || !brand || price == null) {
-      return res.status(400).json({ message: "Please fill all required fields including price." });
+    if (!productName?.trim() || !description?.trim() || !deliveryWarrantyInstallation?.trim() || !brand || !category || price == null) {
+      return res.status(400).json({ message: "Please fill all required fields including category and price." });
     }
 
     if (isNaN(price) || price < 0) {
       return res.status(400).json({ message: "Price must be a valid positive number." });
     }
 
-    // Validate images
+    // ✅ Ensure category exists
+    const categoryDoc = await Category.findById(category);
+    if (!categoryDoc) {
+      return res.status(404).json({ message: "Category not found." });
+    }
+
+    // ✅ Validate Subcategory & Child Subcategory
+    let validSubcategory = null;
+    let validChildSubcategory = null;
+
+    if (subcategory) {
+      const sub = categoryDoc.subcategories.find(s => s.name === subcategory);
+      if (!sub) {
+        return res.status(400).json({ message: "Invalid subcategory selected." });
+      }
+      validSubcategory = sub.name;
+
+      if (childSubcategory) {
+        const child = sub.children.find(c => c.name === childSubcategory);
+        if (!child) {
+          return res.status(400).json({ message: "Invalid child subcategory selected." });
+        }
+        validChildSubcategory = child.name;
+      }
+    }
+
+    // ✅ Validate images
     if (!req.files || !req.files.images || req.files.images.length === 0) {
       return res.status(400).json({ message: "Please upload at least one product image." });
     }
 
-    // Upload to Cloudinary
+    // Upload images to Cloudinary
     for (const file of req.files.images) {
       const filePath = path.resolve(file.path);
       const uploadResult = await cloudinary.uploader.upload(filePath, { folder: "products" });
       images.push(uploadResult.secure_url);
     }
 
-    // Create new product
+    // ✅ Create product
     const newProduct = new Product({
       productName: productName.trim(),
-      keyFeatures: Array.isArray(keyFeatures)
-        ? keyFeatures
-        : keyFeatures.split(",").map(item => item.trim()),
+      keyFeatures: Array.isArray(keyFeatures) ? keyFeatures : keyFeatures.split(",").map(item => item.trim()),
       description: description.trim(),
-      additionalInfo: Array.isArray(additionalInfo)
-        ? additionalInfo
-        : additionalInfo.split(",").map(item => item.trim()),
+      additionalInfo: Array.isArray(additionalInfo) ? additionalInfo : additionalInfo.split(",").map(item => item.trim()),
       deliveryWarrantyInstallation: deliveryWarrantyInstallation.trim(),
       status: status || "in stock",
       brand: new mongoose.Types.ObjectId(brand),
       price: Number(price),
-      images
+      images,
+      category: categoryDoc._id,
+      subcategory: validSubcategory,
+      childSubcategory: validChildSubcategory
     });
 
     await newProduct.save();
@@ -71,9 +99,12 @@ module.exports = {
   }
 }
 
+
+
+
 ,
 
-  editProduct: async (req, res) => {
+editProduct: async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -90,39 +121,76 @@ module.exports = {
       deliveryWarrantyInstallation,
       status,
       brand,
-      price
+      price,
+      category,        // main category id
+      subcategory,     // subcategory name
+      childSubcategory // child subcategory name
     } = req.body;
 
+    // ✅ Validate price
     if (price != null && (isNaN(price) || price < 0)) {
       return res.status(400).json({ message: "Price must be a valid positive number." });
     }
 
+    // ✅ Validate Category
+    let categoryDoc = existingProduct.category;
+    let validSubcategory = existingProduct.subcategory;
+    let validChildSubcategory = existingProduct.childSubcategory;
+
+    if (category) {
+      categoryDoc = await Category.findById(category);
+      if (!categoryDoc) {
+        return res.status(404).json({ message: "Category not found." });
+      }
+    }
+
+    // ✅ Validate Subcategory & Child Subcategory
+    if (subcategory) {
+      const sub = categoryDoc.subcategories.find(s => s.name === subcategory);
+      if (!sub) {
+        return res.status(400).json({ message: "Invalid subcategory selected." });
+      }
+      validSubcategory = sub.name;
+
+      if (childSubcategory) {
+        const child = sub.children.find(c => c.name === childSubcategory);
+        if (!child) {
+          return res.status(400).json({ message: "Invalid child subcategory selected." });
+        }
+        validChildSubcategory = child.name;
+      }
+    }
+
+    // ✅ Prepare updated data
     const updatedData = {
       productName: productName?.trim() || existingProduct.productName,
       keyFeatures: keyFeatures
         ? Array.isArray(keyFeatures)
           ? keyFeatures
-          : keyFeatures.split(',').map(f => f.trim())
+          : keyFeatures.split(",").map(f => f.trim())
         : existingProduct.keyFeatures,
       description: description?.trim() || existingProduct.description,
       additionalInfo: additionalInfo
         ? Array.isArray(additionalInfo)
           ? additionalInfo
-          : additionalInfo.split(',').map(i => i.trim())
+          : additionalInfo.split(",").map(i => i.trim())
         : existingProduct.additionalInfo,
       deliveryWarrantyInstallation: deliveryWarrantyInstallation?.trim() || existingProduct.deliveryWarrantyInstallation,
       status: status || existingProduct.status,
       brand: brand ? new mongoose.Types.ObjectId(brand) : existingProduct.brand,
       price: price != null ? Number(price) : existingProduct.price,
+      category: categoryDoc ? categoryDoc._id : existingProduct.category,
+      subcategory: validSubcategory,
+      childSubcategory: validChildSubcategory,
       updatedAt: Date.now()
     };
 
-    // Handle image update
+    // ✅ Handle image update
     if (req.files && req.files.images && req.files.images.length > 0) {
       const uploadedImages = [];
       for (const file of req.files.images) {
         const imagePath = path.resolve(file.path);
-        const uploadResult = await cloudinary.uploader.upload(imagePath, { folder: 'products' });
+        const uploadResult = await cloudinary.uploader.upload(imagePath, { folder: "products" });
         uploadedImages.push(uploadResult.secure_url);
       }
       updatedData.images = uploadedImages;
@@ -133,12 +201,13 @@ module.exports = {
       runValidators: true
     });
 
-    return res.status(200).json({ message: 'Product updated successfully', product: updatedProduct });
+    return res.status(200).json({ message: "Product updated successfully", product: updatedProduct });
   } catch (error) {
-    console.error('Error updating product:', error);
-    return res.status(400).json({ message: 'Error updating product', error: error.message });
+    console.error("Error updating product:", error);
+    return res.status(500).json({ message: "Error updating product", error: error.message });
   }
 },
+
 
 
   
@@ -165,29 +234,60 @@ getAllProducts : async (req, res) => {
   }
 },
 
-getEditProduct : async (req, res) => {
+getEditProduct: async (req, res) => {
   try {
     const { id: productId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).send('Invalid Product ID');
+      return res.status(400).send("Invalid Product ID");
     }
 
-    const product = await Product.findById(productId);
-const brands = await Brand.find().lean();
+    // ✅ Fetch product
+    const product = await Product.findById(productId).lean();
     if (!product) {
-      return res.status(404).send('Product not found');
-    }
-    if (!brands) {
-      return res.status(404).send('brands not found');
+      return res.status(404).send("Product not found");
     }
 
-    res.render('admin/editproduct', { product, brands }); // Make sure you have a matching view
+    // ✅ Fetch brands
+    const brands = await Brand.find().lean();
+    if (!brands || brands.length === 0) {
+      return res.status(404).send("Brands not found");
+    }
+
+    // ✅ Fetch categories
+    const categories = await Category.find().lean();
+    if (!categories || categories.length === 0) {
+      return res.status(404).send("Categories not found");
+    }
+
+    // ✅ Find the selected category for this product
+    const selectedCategory = categories.find(
+      cat => String(cat._id) === String(product.category)
+    );
+
+    // ✅ Find the selected subcategory (inside selectedCategory)
+    let selectedSubcategory = null;
+    if (selectedCategory && product.subcategory) {
+      selectedSubcategory = selectedCategory.subcategories.find(
+        sub => sub.name === product.subcategory
+      );
+    }
+
+    // ✅ Render view with all required data
+    res.render("admin/editproduct", {
+      product,
+      brands,
+      categories,
+      selectedCategory: selectedCategory || null,
+      selectedSubcategory: selectedSubcategory || null
+    });
+
   } catch (error) {
-    console.error('Error fetching product:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error fetching product:", error);
+    res.status(500).send("Internal Server Error");
   }
-},
+}
+,
 
 
 deleteProductImage : async (req, res) => {

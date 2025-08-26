@@ -1,20 +1,19 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
+const childSubCategorySchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true }
+});
+
+const subCategorySchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  children: [childSubCategorySchema]  // nested child subcategories
+});
 
 const categorySchema = new mongoose.Schema({
-    categoryname: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    subcategories: [{
-        type: String,
-        required: false
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    status:{ type: Boolean, default: true }
+  categoryname: { type: String, required: true, unique: true, trim: true },
+  subcategories: [subCategorySchema],
+  createdAt: { type: Date, default: Date.now },
+  status: { type: Boolean, default: true }
 });
-const Category = mongoose.model('Category', categorySchema);
-module.exports = Category;
+
+module.exports = mongoose.model("Category", categorySchema);

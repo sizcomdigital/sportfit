@@ -10,9 +10,11 @@ router.get("/shop",usercontroller.usershop);
 router.get("/shop-detalis",usercontroller.usershopdetalis);
 router.post("/checkout", usercontroller.createCheckoutSession);
 router.get("/complete", usercontroller.handleCheckoutCompletion);
-router.post('/addToCart', usercontroller.addToCart)
+router.post('/addToCart',authenticateToken,usercontroller.addToCart)
+router.put("/updateCartQuantity",authenticateToken,usercontroller.updateCartQuantity);
+router.delete("/removeFromCart", authenticateToken,usercontroller.removeFromCart);
 router.post("/signup", usercontroller.usersignup);
 router.post("/verify-otp", usercontroller.verifyOtp);  
  router.post("/login", usercontroller.userlogin);
-
+router.get("/checkout", usercontroller.usercheckout);
 module.exports = router

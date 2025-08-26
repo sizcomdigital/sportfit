@@ -36,39 +36,41 @@
             <%-include('../layouts/admin/sideheader.ejs')%>
             
                 <!-- End Main Header -->
-              <main id="main">
-    <section class="profile-dashboard">
-        <div class="inner-header mb-40">
-            <h3 class="title">Add Category</h3>
-            <p class="des">Fill out the details to add a new category.</p>
-        </div>
+<main id="main">
+  <section class="profile-dashboard">
+    <div class="inner-header mb-40">
+      <h3 class="title">Add Category</h3>
+      <p class="des">Fill out details for category hierarchy.</p>
+    </div>
 
-        <form id="form-add-category" class="form-add-program" method="POST">
-    <div class="widget-dash-board pr-256 mb-75">
+    <form id="form-add-category" class="form-add-program" method="POST">
+      <div class="widget-dash-board pr-256 mb-75">
         <h4 class="title-add-program mb-30">1. Category Information</h4>
 
         <div class="input-wrap mb-30">
-            <label>Enter Category Name</label>
-            <input type="text" name="categoryname" placeholder="Category Name" required />
+          <label>Main Category</label>
+          <input type="text" name="categoryname" placeholder="Main Category Name" required />
         </div>
 
         <div class="input-wrap mb-30">
-            <label>Subcategories (optional)</label>
-            <div id="subcategories-container">
-                <div class="subcategory-input mb-2">
-                    <input type="text" name="subcategories" placeholder="Subcategory (e.g. Yoga)" />
-                    <button style="background-color: #eb2444; margin-top: 1rem;" type="button" class="add-subcategory-btn">+</button>
-                </div>
+          <label>Subcategories</label>
+          <div id="subcategories-container">
+            <div class="subcategory-input mb-2">
+              <input type="text" name="subcategories[][name]" placeholder="Subcategory (e.g. Mobiles)" />
+              <button type="button" class="add-child-btn" style="background:#eb2444;">+ Child</button>
+              <div class="child-container"></div>
+              <button type="button" class="remove-subcategory-btn" style="background:#eb2444;">–</button>
             </div>
+          </div>
+          <button type="button" class="add-subcategory-btn" style="background:#eb2444; margin-top:1rem;">+ Add Subcategory</button>
         </div>
-    </div>
+      </div>
 
-    <div class="input-wrap">
-        <button style="background-color: #eb2444;" type="submit" class="button-add">Save Category</button>
-    </div>
-</form>
-
-    </section>
+      <div class="input-wrap">
+        <button style="background:#eb2444;" type="submit" class="button-add">Save Category</button>
+      </div>
+    </form>
+  </section>
 </main>
 
 
@@ -111,79 +113,88 @@
     <script src="/app/js/shortcodes.js"></script>
     <script src="/app/js/main.js"></script>
 <script>
-    // Handle dynamic subcategory input fields
-    document.addEventListener('click', function (e) {
-        if (e.target && e.target.classList.contains('add-subcategory-btn')) {
-            const container = document.getElementById('subcategories-container');
-            const newInput = document.createElement('div');
-            newInput.classList.add('subcategory-input', 'mb-2');
-            newInput.innerHTML = `
-                <input type="text" name="subcategories" placeholder="Subcategory (e.g. Zumba)" />
-                <button style="background-color: #eb2444;"  type="button" class="remove-subcategory-btn">–</button>
-            `;
-            container.appendChild(newInput);
-        }
+  const subcategoriesContainer = document.getElementById("subcategories-container");
 
-        if (e.target && e.target.classList.contains('remove-subcategory-btn')) {
-            e.target.parentElement.remove();
-        }
+  document.addEventListener("click", function (e) {
+    // Add Subcategory
+    if (e.target.classList.contains("add-subcategory-btn")) {
+      const newSub = document.createElement("div");
+      newSub.classList.add("subcategory-input", "mb-2");
+      newSub.innerHTML = `
+        <input type="text" name="subcategories[][name]" placeholder="Subcategory (e.g. Laptops)" />
+        <button type="button" class="add-child-btn" style="background:#eb2444;">+ Child</button>
+        <div class="child-container"></div>
+        <button type="button" class="remove-subcategory-btn" style="background:#eb2444;">–</button>
+      `;
+      subcategoriesContainer.appendChild(newSub);
+    }
+
+    // Remove Subcategory
+    if (e.target.classList.contains("remove-subcategory-btn")) {
+      e.target.parentElement.remove();
+    }
+
+    // Add Child Subcategory
+    if (e.target.classList.contains("add-child-btn")) {
+      const childContainer = e.target.nextElementSibling;
+      const childInput = document.createElement("div");
+      childInput.classList.add("child-input", "mb-1");
+      childInput.innerHTML = `
+        <input type="text" name="children" placeholder="Child Subcategory (e.g. Android Phones)" />
+        <button type="button" class="remove-child-btn" style="background:#eb2444;">–</button>
+      `;
+      childContainer.appendChild(childInput);
+    }
+
+    // Remove Child Subcategory
+    if (e.target.classList.contains("remove-child-btn")) {
+      e.target.parentElement.remove();
+    }
+  });
+
+  // Handle form submission
+  document.getElementById("form-add-category").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.target;
+
+    const categoryname = form.querySelector("input[name='categoryname']").value.trim();
+    const subcategories = [];
+
+    form.querySelectorAll(".subcategory-input").forEach(subDiv => {
+      const subName = subDiv.querySelector("input[name='subcategories[][name]']").value.trim();
+      if (!subName) return;
+
+      const children = [];
+      subDiv.querySelectorAll(".child-input input").forEach(c => {
+        if (c.value.trim()) children.push(c.value.trim());
+      });
+
+      subcategories.push({ name: subName, children });
     });
 
-    // Handle form submission
-    document.getElementById('form-add-category').addEventListener('submit', async (event) => {
-        event.preventDefault();
+    const payload = { categoryname, subcategories };
 
-        const form = event.target;
-        const formData = new FormData(form);
+    try {
+      const response = await fetch("/admin/category", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-        const subcategories = [];
-        form.querySelectorAll('input[name="subcategories"]').forEach(input => {
-            const val = input.value.trim();
-            if (val) subcategories.push(val);
-        });
+      const result = await response.json();
 
-        const payload = {
-            categoryname: formData.get('categoryname').trim(),
-            subcategories
-        };
-
-        try {
-            const response = await fetch('/admin/category', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Category added!',
-                    text: result.message,
-                }).then(() => {
-                    form.reset();
-                    window.location.reload();
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Failed!',
-                    text: result.message || 'Something went wrong.',
-                });
-            }
-        } catch (error) {
-            console.error("Fetch error:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: 'Something went wrong while adding the category.',
-            });
-        }
-    });
+      if (response.ok) {
+        Swal.fire({ icon: "success", title: "Category Added!", text: result.message })
+          .then(() => window.location.reload());
+      } else {
+        Swal.fire({ icon: "error", title: "Failed!", text: result.message || "Something went wrong." });
+      }
+    } catch (err) {
+      Swal.fire({ icon: "error", title: "Error!", text: "Something went wrong while saving." });
+    }
+  });
 </script>
+
 
 
             

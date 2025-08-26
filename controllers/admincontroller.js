@@ -140,35 +140,69 @@ module.exports = {
 },
 
 
-    postgetcategory: async (req, res) => {
+   postgetcategory: async (req, res) => {
     try {
-        const { categoryname, subcategories } = req.body;
+        let { categoryname, subcategories } = req.body;
 
-        if (!categoryname) {
+        if (!categoryname || !categoryname.trim()) {
             return res.status(400).json({ message: "Category name is required." });
         }
 
-        const existingCategory = await Category.findOne({ categoryname });
+        categoryname = categoryname.trim();
+
+        // Prevent duplicate category (case-insensitive)
+        const existingCategory = await Category.findOne({
+            categoryname: { $regex: new RegExp(`^${categoryname}$`, "i") }
+        });
         if (existingCategory) {
             return res.status(400).json({ message: "Category already exists." });
         }
 
-        const categoryData = {
-            categoryname: categoryname.trim(),
-            subcategories: Array.isArray(subcategories)
-                ? subcategories.filter(s => s.trim() !== "")
-                : subcategories ? [subcategories.trim()] : []
-        };
+        // Ensure subcategories format
+        let subcategoryList = [];
+        if (Array.isArray(subcategories)) {
+            subcategoryList = subcategories.map(sub => ({
+                name: sub.name.trim(),
+                children: Array.isArray(sub.children)
+                    ? sub.children.map(c => ({ name: c.trim() })).filter(c => c.name)
+                    : []
+            }));
+        }
 
-        const category = new Category(categoryData);
+        const category = new Category({
+            categoryname,
+            subcategories: subcategoryList
+        });
+
         await category.save();
 
         res.status(201).json({ message: "Category saved successfully.", category });
     } catch (error) {
         console.error("Error saving category:", error);
-        res.status(500).json({ message: "An error occurred while saving the category.", error });
+        res.status(500).json({ message: "An error occurred while saving the category.", error: error.message });
     }
 },
+// controller/admincontroller.js
+getSubcategories: async (req, res) => {
+  try {
+    const categoryId = req.params.id;
+
+    const category = await Category.findById(categoryId).lean();
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    res.json({
+      subcategories: category.subcategories || []
+    });
+  } catch (error) {
+    console.error("Error fetching subcategories:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+},
+
+
 
 
     getEditCategoryPage: async (req, res) => {
@@ -212,18 +246,26 @@ module.exports = {
 
 editCategory: async (req, res) => {
     const { id } = req.params;
-    const { name, subcategories } = req.body;
+    const { categoryname, subcategories } = req.body;
 
     try {
+        if (!categoryname || !categoryname.trim()) {
+            return res.status(400).json({ message: "Category name is required" });
+        }
+
         const updatedData = {
-            categoryname: name.trim(),
+            categoryname: categoryname.trim(),
             updatedAt: Date.now()
         };
 
-        if (subcategories) {
-            updatedData.subcategories = Array.isArray(subcategories)
-                ? subcategories.filter(s => s.trim() !== "")
-                : [subcategories.trim()];
+        if (Array.isArray(subcategories)) {
+            // Expect subcategories like [{ name: "Mobiles", children: ["Android", "iPhone"] }]
+            updatedData.subcategories = subcategories.map(sub => ({
+                name: sub.name.trim(),
+                children: Array.isArray(sub.children)
+                    ? sub.children.map(c => ({ name: c.trim() })).filter(c => c.name)
+                    : []
+            }));
         }
 
         const updatedCategory = await Category.findByIdAndUpdate(
@@ -233,27 +275,41 @@ editCategory: async (req, res) => {
         );
 
         if (!updatedCategory) {
-            return res.status(404).json({ message: 'Category not found' });
+            return res.status(404).json({ message: "Category not found" });
         }
 
-        res.status(200).json({ message: 'Category updated successfully', category: updatedCategory });
+        res.status(200).json({
+            message: "Category updated successfully",
+            category: updatedCategory
+        });
+
     } catch (error) {
         console.error("Error updating category:", error);
-        res.status(400).json({ message: 'Error updating category', error: error.message });
+        res.status(400).json({
+            message: "Error updating category",
+            error: error.message
+        });
     }
 },
 
 
+
+
  
-   addProduct : async (req, res) => {
+  addProduct : async (req, res) => {
   try {
     const brands = await Brand.find().lean(); // Fetch brands for dropdown
-    res.render("admin/addproduct", { brands });
+    const categories = await Category.find({ status: true }).lean(); // fetch categories with subs & children
+    console.log(categories,"categoriescategories");
+    
+
+    res.render("admin/addproduct", { brands, categories });
   } catch (error) {
     console.error("Error fetching brands:", error);
     res.status(500).send("Internal Server Error");
   }
 },
+
    allProducts : async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 6;
