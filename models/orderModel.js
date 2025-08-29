@@ -41,11 +41,10 @@ const OrderSchema = new mongoose.Schema({
     totalAmount: { type: Number, required: true }, 
     discountApplied: { type: Number, default: 0 }, 
 
-    // ✅ Only KNET is supported
+    // ✅ Tap supports multiple payment methods (KNET, Visa, MasterCard, Mada, ApplePay, etc.)
     paymentMethod: { 
         type: String, 
-        enum: [ 'KNET' ], 
-        default: 'KNET',
+        enum: ['KNET', 'MADA', 'VISA', 'MASTERCARD', 'APPLEPAY'], 
         required: true 
     }, 
 
@@ -63,13 +62,13 @@ const OrderSchema = new mongoose.Schema({
 
     shippingAddress: { type: mongoose.Schema.Types.ObjectId, ref: 'Address', required: true }, 
 
-    // ✅ KNET Gateway fields
-    knetPaymentId: { type: String },    // Transaction ID from KNET
-    knetTrackId: { type: String },      // Track ID from KNET
+    // ✅ Tap Gateway transaction fields
+    tapChargeId: { type: String },    // Unique charge ID from Tap
+    tapTransactionId: { type: String }, // Tap transaction reference
+    tapReceiptUrl: { type: String },   // Receipt link from Tap
 
     deliveryDate: { type: Date }, 
 
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', OrderSchema);
-   

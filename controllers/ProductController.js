@@ -132,19 +132,22 @@ editProduct: async (req, res) => {
       return res.status(400).json({ message: "Price must be a valid positive number." });
     }
 
-    // ✅ Validate Category
-    let categoryDoc = existingProduct.category;
-    let validSubcategory = existingProduct.subcategory;
-    let validChildSubcategory = existingProduct.childSubcategory;
-
+    // ✅ Ensure category exists
+    let categoryDoc = null;
     if (category) {
       categoryDoc = await Category.findById(category);
       if (!categoryDoc) {
         return res.status(404).json({ message: "Category not found." });
       }
+    } else {
+      // fallback to product’s existing category
+      categoryDoc = await Category.findById(existingProduct.category);
     }
 
     // ✅ Validate Subcategory & Child Subcategory
+    let validSubcategory = existingProduct.subcategory;
+    let validChildSubcategory = existingProduct.childSubcategory;
+
     if (subcategory) {
       const sub = categoryDoc.subcategories.find(s => s.name === subcategory);
       if (!sub) {
@@ -158,6 +161,8 @@ editProduct: async (req, res) => {
           return res.status(400).json({ message: "Invalid child subcategory selected." });
         }
         validChildSubcategory = child.name;
+      } else {
+        validChildSubcategory = null; // reset if not provided
       }
     }
 
@@ -179,7 +184,7 @@ editProduct: async (req, res) => {
       status: status || existingProduct.status,
       brand: brand ? new mongoose.Types.ObjectId(brand) : existingProduct.brand,
       price: price != null ? Number(price) : existingProduct.price,
-      category: categoryDoc ? categoryDoc._id : existingProduct.category,
+      category: categoryDoc._id,
       subcategory: validSubcategory,
       childSubcategory: validChildSubcategory,
       updatedAt: Date.now()
@@ -207,6 +212,7 @@ editProduct: async (req, res) => {
     return res.status(500).json({ message: "Error updating product", error: error.message });
   }
 },
+
 
 
 

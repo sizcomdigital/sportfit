@@ -207,9 +207,7 @@ userlogin: async (req, res) => {
     contactpage: async(req,res)=>{
         res.render("user/contactpage")
     },
-    partnerpage: async(req,res)=>{
-        res.render("user/partners")
-    },
+  
     createCheckoutSession : async (req, res) => {
         try {
           const { name, email, age, phone, planType, feeAmount, sectionType } = req.body;

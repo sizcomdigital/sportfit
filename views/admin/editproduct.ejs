@@ -54,7 +54,7 @@
             <%-include('../layouts/admin/sideheader.ejs')%>
             
                 <!-- End Main Header -->
- <main id="main">
+<main id="main">
   <section class="profile-dashboard">
     <div class="inner-header mb-40">
       <h3 class="title">Edit Product</h3>
@@ -126,10 +126,10 @@
           <label for="category">Category</label>
           <select name="category" id="category" required>
             <% categories.forEach(cat => { %>
-  <option value="<%= cat._id %>" <%= String(cat._id) === String(product.category) ? 'selected' : '' %>>
-    <%= cat.categoryname %>
-  </option>
-<% }); %>
+              <option value="<%= cat._id %>" <%= String(cat._id) === String(product.category) ? 'selected' : '' %>>
+                <%= cat.categoryname %>
+              </option>
+            <% }); %>
           </select>
         </div>
 
@@ -138,13 +138,6 @@
           <label for="subcategory">Subcategory</label>
           <select name="subcategory" id="subcategory">
             <option value="">-- Select Subcategory --</option>
-            <% if (selectedCategory && selectedCategory.subcategories) { %>
-              <% selectedCategory.subcategories.forEach(sub => { %>
-                <option value="<%= sub.name %>" <%= sub.name === product.subcategory ? 'selected' : '' %>>
-                  <%= sub.name %>
-                </option>
-              <% }) %>
-            <% } %>
           </select>
         </div>
 
@@ -153,13 +146,6 @@
           <label for="childSubcategory">Child Subcategory</label>
           <select name="childSubcategory" id="childSubcategory">
             <option value="">-- Select Child Subcategory --</option>
-            <% if (selectedSubcategory && selectedSubcategory.children) { %>
-              <% selectedSubcategory.children.forEach(child => { %>
-                <option value="<%= child.name %>" <%= child.name === product.childSubcategory ? 'selected' : '' %>>
-                  <%= child.name %>
-                </option>
-              <% }) %>
-            <% } %>
           </select>
         </div>
 
@@ -310,7 +296,7 @@
 
       const imageUrl = e.target.getAttribute('data-image');
       const id = e.target.getAttribute('data-id');
-
+     
       try {
         const res = await fetch(`/admin/products/img/${id}`, {
           method: 'DELETE',
@@ -343,6 +329,71 @@
     btnText.textContent = 'Updating...';
     btnSpinner.style.display = 'inline-block';
   });
+
+  // -----------------------------
+  // Dynamic Category/Subcategory/Child fetch
+  // -----------------------------
+  const categorySelect = document.getElementById("category");
+  const subcategorySelect = document.getElementById("subcategory");
+  const childSubcategorySelect = document.getElementById("childSubcategory");
+
+  // Populate subcategories when category changes
+  categorySelect.addEventListener("change", async () => {
+    const categoryId = categorySelect.value;
+    subcategorySelect.innerHTML = '<option value="">-- Select Subcategory --</option>';
+    childSubcategorySelect.innerHTML = '<option value="">-- Select Child Subcategory --</option>';
+
+    if (!categoryId) return;
+
+    try {
+      const res = await fetch(`/admin/categories/${categoryId}/subcategories`);
+      const data = await res.json();
+
+      if (res.ok && data.subcategories) {
+        data.subcategories.forEach(sub => {
+          const opt = document.createElement("option");
+          opt.value = sub.name;
+          opt.textContent = sub.name;
+          if (sub.name === "<%= product.subcategory %>") opt.selected = true;
+          subcategorySelect.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching subcategories:", err);
+    }
+  });
+
+  // Populate child subcategories when subcategory changes
+  subcategorySelect.addEventListener("change", async () => {
+    const categoryId = categorySelect.value;
+    const selectedSub = subcategorySelect.value;
+    childSubcategorySelect.innerHTML = '<option value="">-- Select Child Subcategory --</option>';
+
+    if (!categoryId || !selectedSub) return;
+
+    try {
+      const res = await fetch(`/admin/categories/${categoryId}/subcategories`);
+      const data = await res.json();
+
+      if (res.ok && data.subcategories) {
+        const sub = data.subcategories.find(s => s.name === selectedSub);
+        if (sub && sub.children) {
+          sub.children.forEach(child => {
+            const opt = document.createElement("option");
+            opt.value = child.name;
+            opt.textContent = child.name;
+            if (child.name === "<%= product.childSubcategory %>") opt.selected = true;
+            childSubcategorySelect.appendChild(opt);
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching child subcategories:", err);
+    }
+  });
+
+  // Trigger initial load for editing product
+  categorySelect.dispatchEvent(new Event("change"));
 </script>
 
 

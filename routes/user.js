@@ -4,7 +4,6 @@ const usercontroller = require('../controllers/usercontroller')
 const  authenticateToken = require ("../middleware/usermiddleware")
 router.get("/",usercontroller.userhome);
 router.get("/contactus",usercontroller.contactpage);
-router.get("/partner",usercontroller.partnerpage);
 router.get("/about",usercontroller.userabout)
 router.get("/shop",usercontroller.usershop);
 router.get("/shop-detalis",usercontroller.usershopdetalis);
