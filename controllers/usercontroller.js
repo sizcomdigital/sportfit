@@ -204,6 +204,139 @@ userlogin: async (req, res) => {
     }
 },
 
+changePassword : async (req, res) => {
+    try {
+        const userId = req.user._id; // from JWT
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Validate password strength
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long and contain a letter and a number."
+            });
+        }
+
+        // Find user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Compare old password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Current password is incorrect" });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        return res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        console.error("Error changing password:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+},
+
+forgotPassword : async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "No account with that email found" });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(20).toString("hex");
+
+        // Store token and expiry
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        // Send email with reset link
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: process.env.EMAIL_ADDRESS,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const resetURL = `http://${req.headers.host}/reset/${resetToken}`;
+
+        const mailOptions = {
+            to: user.email,
+            from: process.env.EMAIL_ADDRESS,
+            subject: "Password Reset Request",
+            text: `Hello ${user.fullname},\n\nYou requested a password reset.\n\n
+                   Please click the link below to reset your password:\n
+                   ${resetURL}\n\n
+                   This link will expire in 1 hour.\n
+                   If you didn't request this, ignore this email.\n`,
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ message: "Reset email sent successfully" });
+    } catch (error) {
+        console.error("Error in forgotPassword:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+},
+
+resetPassword : async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword) {
+            return res.status(400).json({ message: "New password is required" });
+        }
+
+        // Validate password strength
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long and contain a letter and a number."
+            });
+        }
+
+        // Find user with token
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired password reset token" });
+        }
+
+        // Hash and update password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        return res.status(200).json({ message: "Password has been reset successfully" });
+    } catch (error) {
+        console.error("Error in resetPassword:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+},
+
+
+
     contactpage: async(req,res)=>{
         res.render("user/contactpage")
     },
