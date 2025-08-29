@@ -506,6 +506,97 @@ usercheckout: async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 },
+addAddress: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { fullName, phone, addressLine1, addressLine2, city, state, postalCode, country } = req.body;
+
+            if (!fullName || !phone || !addressLine1 || !city || !state || !postalCode || !country) {
+                return res.status(400).json({ success: false, message: "All required fields must be filled!" });
+            }
+
+            const newAddress = new Address({
+                userId,
+                fullName,
+                phone,
+                addressLine1,
+                addressLine2,
+                city,
+                state,
+                postalCode,
+                country
+            });
+
+            await newAddress.save();
+
+            // ✅ Success response
+            return res.status(201).json({ success: true, message: "Address added successfully!", address: newAddress });
+        } catch (error) {
+            console.error("Error adding address:", error);
+            return res.status(500).json({ success: false, message: "Internal server error" });
+        }
+    },
+
+    // ✏️ Edit Address
+    editAddress: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { addressId } = req.params;
+            const { fullName, phone, addressLine1, addressLine2, city, state, postalCode, country } = req.body;
+
+            if (!fullName || !phone || !addressLine1 || !city || !state || !postalCode || !country) {
+                return res.status(400).json({ success: false, message: "All required fields must be filled!" });
+            }
+
+            const updatedAddress = await Address.findOneAndUpdate(
+                { _id: addressId, userId },
+                { fullName, phone, addressLine1, addressLine2, city, state, postalCode, country, updatedAt: Date.now() },
+                { new: true }
+            );
+
+            if (!updatedAddress) {
+                return res.status(404).json({ success: false, message: "Address not found!" });
+            }
+
+            return res.status(200).json({ success: true, message: "Address updated successfully!", address: updatedAddress });
+        } catch (error) {
+            console.error("Error updating address:", error);
+            return res.status(500).json({ success: false, message: "Internal server error" });
+        }
+    },
+
+    // 🗑️ Delete Address
+    deleteAddress: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { addressId } = req.params;
+
+            const address = await Address.findOne({ _id: addressId, userId });
+            if (!address) {
+                return res.status(404).json({ success: false, message: "Address not found" });
+            }
+
+            await Address.deleteOne({ _id: addressId });
+
+            return res.status(200).json({ success: true, message: "Address deleted successfully" });
+        } catch (error) {
+            console.error("Error deleting address:", error);
+            return res.status(500).json({ success: false, message: "Error deleting address", error: error.message });
+        }
+    },
+
+    // 📋 Get All Addresses of a User
+    getUserAddresses: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const addresses = await Address.find({ userId }).sort({ createdAt: -1 });
+
+            return res.status(200).json({ success: true, addresses });
+        } catch (error) {
+            console.error("Error fetching addresses:", error);
+            return res.status(500).json({ success: false, message: "Internal server error" });
+        }
+    },
 
 
   

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const admincontroller = require('../controllers/admincontroller')
 const productControler = require('../controllers/ProductController')
-const reviewController = require ('../controllers/reviewController')
+
 const brandController = require("../controllers/brandController")
 const upload = require('../config/multer')
 const verifyToken = require('../middleware/authmiddleware')
