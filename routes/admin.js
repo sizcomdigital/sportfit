@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const admincontroller = require('../controllers/admincontroller')
 const productControler = require('../controllers/ProductController')
-
+const OrderController = require("../controllers/orderController")
 const brandController = require("../controllers/brandController")
 const upload = require('../config/multer')
 const verifyToken = require('../middleware/authmiddleware')
@@ -66,6 +66,13 @@ router.get("/editbrand/:id", verifyToken, brandController.getEditBrandPage);
 router.delete("/deletebrand/:id", verifyToken, brandController.deleteBrand);
 
 
+// Get all orders
+router.get("/orders", verifyToken, OrderController.getAllOrders);
+
+// Update order status
+router.put('/orders/:orderId', verifyToken, OrderController.updateOrderStatus);
+
+router.delete("/orders/:orderId", verifyToken, OrderController.deleteOrder);
 
 
 

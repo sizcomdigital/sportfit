@@ -190,6 +190,180 @@ module.exports = {
             error: error?.response?.data || error.message,
         });
     }
-}
+},
+
+// ✅ Get all orders
+getAllOrders: async (req, res) => {
+    try {
+        const perPage = 10; // how many orders per page
+        const page = parseInt(req.query.page) || 1;
+
+        const ordersCount = await Order.countDocuments();
+
+        const orders = await Order.find()
+            .skip((page - 1) * perPage)
+            .limit(perPage)
+            .populate("userId", "fullname email") // Fetch basic user info
+            .populate("shippingAddress") // Populate shipping address
+            .populate("products.productId", "productName images"); // Basic product snapshot
+
+        if (!orders.length) {
+            return res.render("admin/allorder", { 
+                orders: [], 
+                message: "No orders found", 
+                ordersCount: 0,
+                currentPage: page,
+                totalPages: Math.ceil(ordersCount / perPage)
+            });
+        }
+
+        // 🔹 Transform orders for frontend
+        const formattedOrders = [];
+        orders.forEach(order => {
+            order.products.forEach(product => {
+                if (!product.productId) return; // Prevent crashes if product is deleted
+                formattedOrders.push({
+                    orderId: order._id,
+                    user: order.userId, // { fullname, email }
+                    shippingAddress: order.shippingAddress,
+                    product: {
+                        name: product.productName,
+                        brand: product.brand,
+                        status: product.status,
+                        price: product.finalPrice,
+                        images: product.images || [],
+                    },
+                    quantity: product.quantity,
+                    orderStatus: order.orderStatus,
+                    paymentMethod: order.paymentMethod,
+                    paymentStatus: order.paymentStatus,
+                    createdAt: order.createdAt,
+                });
+            });
+        });
+
+        res.render("admin/allorder", { 
+            orders: formattedOrders, 
+            message: null, 
+            ordersCount,
+            currentPage: page,
+            totalPages: Math.ceil(ordersCount / perPage)
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        res.render("admin/allorder", { 
+            orders: [], 
+            message: "Internal server error", 
+            ordersCount: 0,
+            currentPage: 1,
+            totalPages: 1
+        });
+    }
+},
+   
+
+// ✅ Update order status
+updateOrderStatus: async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { orderStatus, productId } = req.body;
+
+        // Allowed statuses
+        const allowedStatuses = [
+            "Pending",
+            "Processing",
+            "Shipped",
+            "Delivered",
+            "Cancelled",
+            "Return Requested",
+            "Returned"
+        ];
+
+        if (!orderStatus || !allowedStatuses.includes(orderStatus)) {
+            return res.status(400).json({ success: false, message: "Invalid or missing order status" });
+        }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ success: false, message: "Order not found" });
+        }
+
+        // Handle specific product cancel
+        if (orderStatus === "Cancelled" && productId) {
+            const product = order.products.find(p => p.productId.toString() === productId);
+            if (!product) {
+                return res.status(404).json({ success: false, message: "Product not found in order" });
+            }
+            if (product.status === "Cancelled") {
+                return res.status(400).json({ success: false, message: "Product already cancelled" });
+            }
+
+            product.status = "Cancelled";
+
+            // if all cancelled, mark whole order as cancelled
+            const allCancelled = order.products.every(p => p.status === "Cancelled");
+            if (allCancelled) order.orderStatus = "Cancelled";
+        }
+        // Handle Delivered
+        else if (orderStatus === "Delivered") {
+            order.orderStatus = "Delivered";
+            order.products.forEach(p => (p.status = "Delivered"));
+            order.deliveryDate = new Date();
+        }
+        // Handle Returned
+        else if (orderStatus === "Returned" && productId) {
+            const product = order.products.find(p => p.productId.toString() === productId);
+            if (!product) {
+                return res.status(404).json({ success: false, message: "Product not found in order" });
+            }
+            if (product.status !== "Return Requested") {
+                return res.status(400).json({ success: false, message: "Product must be 'Return Requested' before returning" });
+            }
+
+            product.status = "Returned";
+            if (product.returnRequest) {
+                product.returnRequest.returnStatus = "Returned";
+                product.returnRequest.returnDate = new Date();
+            }
+
+            const allReturned = order.products.every(p => p.status === "Returned");
+            if (allReturned) order.orderStatus = "Returned";
+        }
+        // General update
+        else {
+            order.orderStatus = orderStatus;
+        }
+
+        order.updatedAt = new Date();
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Order status updated successfully",
+            data: order,
+        });
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+},
+    deleteOrder: async (req, res) => {
+        try {
+            const { orderId } = req.params;
+
+            // Check if order exists and delete
+            const deletedOrder = await Order.findByIdAndDelete(orderId);
+
+            if (!deletedOrder) {
+                return res.status(404).json({ success: false, message: "Order not found" });
+            }
+
+            return res.status(200).json({ success: true, message: "Order deleted successfully" });
+        } catch (error) {
+            console.error("Error deleting order:", error);
+            return res.status(500).json({ success: false, message: "Internal server error" });
+        }
+    }
+
 
 };

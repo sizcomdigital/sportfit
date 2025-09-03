@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTS FIT</title>
+
+    <meta name="author" content="themesflat.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="/app/css/app.css">
+    <link rel="stylesheet" href="/app/css/map.min.css">
+
+    <%-include('../layouts/admin/favicon.ejs')%>
+
+</head>
+
+<body class="body header-fixed ">
+
+    <div class="preload preload-container">
+        <svg class="pl" width="240" height="240" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000" stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+    </div>
+
+    <!-- /preload -->
+
+    <div id="wrapper">
+
+        <div id="pagee" class="clearfix">
+
+            <%-include('../layouts/admin/sideheader.ejs')%>
+            
+                <!-- End Main Header -->
+<main id="main">
+    <section class="profile-dashboard">
+        <div class="inner-header mb-40">
+            <h3 class="title">All Orders</h3>
+
+            <form id="searchForm" class="search-dashboard">
+                <input type="search" id="searchInput" placeholder="Search orders by user or product" />
+            </form>
+        </div>
+
+        <div class="my-booking-wrap">
+            <ul class="booking-table-title flex-five">
+                <li><p>Order ID</p></li>
+                <li><p>User</p></li>
+                <li><p>Product</p></li>
+                <li><p>Status</p></li>
+                <li><p>Payment</p></li>
+                <li><p>Action</p></li>
+            </ul>
+
+            <ul id="orderList" class="booking-table-content mb-60">
+                <% orders.forEach(order => { %>
+                    <li class="flex-five">
+                        <!-- Order ID -->
+                        <div class="booking-list-table">
+                            <p class="date-gues"><%= order.orderId %></p>
+                        </div>
+
+                        <!-- User -->
+                        <div class="booking-list-table">
+                            <p class="date-gues">
+                                <%= order.user.fullname %> (<%= order.user.email %>)
+                            </p>
+                        </div>
+
+                        <!-- Product -->
+                        <div class="booking-list-table">
+                            <p class="date-gues"><%= order.product.name %></p>
+                        </div>
+
+                        <!-- Order Status -->
+                        <div class="booking-list-table">
+                            <p class="date-gues"><%= order.orderStatus %></p>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="booking-list-table">
+                            <p class="date-gues"><%= order.paymentStatus %> - <%= order.paymentMethod %></p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex-five action-wrap">
+                            <div class="action flex-five" onclick="viewOrder('<%= order.orderId %>')">
+                                <i style="color:#007bff;" class="icon-Vector-16"></i>
+                            </div>
+                            <div class="action flex-five" onclick="deleteOrder('<%= order.orderId %>')">
+                                <i style="color:#eb2444;" class="icon-Vector-17"></i>
+                            </div>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
+
+            <!-- Pagination -->
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="tf-pagination flex-five mt-20">
+                        <% if (currentPage > 1) { %>
+                            <li><a style="background-color:#eb2444;" class="pages-link" href="/admin/orders?page=<%= currentPage - 1 %>"><i class="icon-29"></i></a></li>
+                        <% } %>
+
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <li class="pages-item <%= i === currentPage ? 'active' : '' %>">
+                                <a style="background-color:#eb2444;" class="pages-link" href="/admin/orders?page=<%= i %>"><%= i %></a>
+                            </li>
+                        <% } %>
+
+                        <% if (currentPage < totalPages) { %>
+                            <li><a style="background-color:#eb2444;" class="pages-link" href="/admin/orders?page=<%= currentPage + 1 %>"><i class="icon--1"></i></a></li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+
+
+                <%-include('../layouts/admin/footer.ejs')%>
+                <!-- Bottom -->
+            </div>
+
+        </div>
+        <!-- /#page -->
+    </div>
+
+    <!-- Modal Popup Bid -->
+
+    <a id="scroll-top" class="button-go"></a>
+
+   
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            ...
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/app/js/jquery.min.js"></script>
+    <script src="/app/js/jquery.nice-select.min.js"></script>
+    <script src="/app/js/bootstrap.min.js"></script>
+    <script src="/app/js/tinymce/tinymce.min.js"></script>
+    <script src="/app/js/tinymce/tinymce-custom.js"></script>
+    <script src="/app/js/swiper-bundle.min.js"></script>
+    <script src="/app/js/swiper.js"></script>
+    <script src="/app/js/plugin.js"></script>
+    <script src="/app/js/map.min.js"></script>
+    <script src="/app/js/map.js"></script>
+    <script src="/app/js/shortcodes.js"></script>
+    <script src="/app/js/main.js"></script>
+ 
+
+            
+     <script>
+function viewOrder(id) {
+    location.href = `/admin/orders/${id}`;
+}
+
+function deleteOrder(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Once deleted, this order cannot be recovered!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/admin/orders/delete/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Deleted!', data.message, 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error', 'Something went wrong', 'error');
+                });
+        }
+    });
+}
+</script>
+
+
+
+
+
+</body>
+
+</html>

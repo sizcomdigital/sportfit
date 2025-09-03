@@ -33,16 +33,21 @@ router.post('/order/create', OrderController.createOrder);
 router.post('/order/verify-payment',OrderController.verifyPayment);
 router.post("/forgotpassword", usercontroller.forgotPassword);
 router.post("/changepassword", authenticateToken, usercontroller.changePassword);
-router.post("/reset/:token", usercontroller.resetPassword);
+router.post("/reset/:token", usercontroller.resetPassword); 
 
 
 
 // -------------------PUT & DELETE---------------------------------------------------
 
 router.put("/edit-address/:addressId", authenticateToken, usercontroller.editAddress);
-router.put("/updateCartQuantity",authenticateToken,usercontroller.updateCartQuantity);
+router.put("/updateCartQuantity,",authenticateToken,usercontroller.updateCartQuantity);
 router.delete("/removeFromCart", authenticateToken,usercontroller.removeFromCart);
 router.delete("/delete-address/:addressId", authenticateToken, usercontroller.deleteAddress);
+
+
+
+
+
 
 
    
