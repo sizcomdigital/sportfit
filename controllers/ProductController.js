@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 
 module.exports = {
+// ✅ Add Product
 addProduct: async (req, res) => {
   const {
     productName,
@@ -67,10 +68,13 @@ addProduct: async (req, res) => {
       return res.status(400).json({ message: "Please upload at least one product image." });
     }
 
-    // Upload images to Cloudinary
+    // ✅ Upload images to Cloudinary in WebP format
     for (const file of req.files.images) {
       const filePath = path.resolve(file.path);
-      const uploadResult = await cloudinary.uploader.upload(filePath, { folder: "products" });
+      const uploadResult = await cloudinary.uploader.upload(filePath, {
+        folder: "products",
+        format: "webp" // 🔥 Convert to WebP
+      });
       images.push(uploadResult.secure_url);
     }
 
@@ -97,13 +101,10 @@ addProduct: async (req, res) => {
     console.error("Error adding product:", error);
     res.status(500).json({ message: "Error adding product", error: error.message });
   }
-}
+},
 
 
-
-
-,
-
+// ✅ Edit Product
 editProduct: async (req, res) => {
   const { id } = req.params;
 
@@ -140,7 +141,6 @@ editProduct: async (req, res) => {
         return res.status(404).json({ message: "Category not found." });
       }
     } else {
-      // fallback to product’s existing category
       categoryDoc = await Category.findById(existingProduct.category);
     }
 
@@ -162,7 +162,7 @@ editProduct: async (req, res) => {
         }
         validChildSubcategory = child.name;
       } else {
-        validChildSubcategory = null; // reset if not provided
+        validChildSubcategory = null;
       }
     }
 
@@ -190,15 +190,21 @@ editProduct: async (req, res) => {
       updatedAt: Date.now()
     };
 
-    // ✅ Handle image update
+    // ✅ Handle image update with WebP conversion
     if (req.files && req.files.images && req.files.images.length > 0) {
       const uploadedImages = [];
       for (const file of req.files.images) {
         const imagePath = path.resolve(file.path);
-        const uploadResult = await cloudinary.uploader.upload(imagePath, { folder: "products" });
+        const uploadResult = await cloudinary.uploader.upload(imagePath, {
+          folder: "products",
+          format: "webp" // 🔥 Convert to WebP
+        });
         uploadedImages.push(uploadResult.secure_url);
       }
-      updatedData.images = uploadedImages;
+      // 🔥 Merge old + new images instead of replacing
+      updatedData.images = [...existingProduct.images, ...uploadedImages];
+    } else {
+      updatedData.images = existingProduct.images; // keep old images if none added
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, {
@@ -211,7 +217,9 @@ editProduct: async (req, res) => {
     console.error("Error updating product:", error);
     return res.status(500).json({ message: "Error updating product", error: error.message });
   }
-},
+}
+,
+
 
 
 
