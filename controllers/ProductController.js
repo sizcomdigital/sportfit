@@ -9,7 +9,6 @@ const mongoose = require("mongoose");
 const path = require("path");
 
 module.exports = {
-// ✅ Add Product
 addProduct: async (req, res) => {
   const {
     productName,
@@ -104,7 +103,9 @@ addProduct: async (req, res) => {
 },
 
 
-// ✅ Edit Product
+
+
+
 editProduct: async (req, res) => {
   const { id } = req.params;
 
@@ -161,7 +162,9 @@ editProduct: async (req, res) => {
           return res.status(400).json({ message: "Invalid child subcategory selected." });
         }
         validChildSubcategory = child.name;
-      } else {
+      }
+      // ⚠️ IMPORTANT FIX: only reset if explicitly passed as empty, not always
+      else if (childSubcategory === "") {
         validChildSubcategory = null;
       }
     }
@@ -186,26 +189,36 @@ editProduct: async (req, res) => {
       price: price != null ? Number(price) : existingProduct.price,
       category: categoryDoc._id,
       subcategory: validSubcategory,
-      childSubcategory: validChildSubcategory,
-      updatedAt: Date.now()
+      childSubcategory: validChildSubcategory, // ✅ keeps old one if not changed
+      updatedAt: Date.now(),
+      images: existingProduct.images // ✅ keep old images by default
     };
 
-    // ✅ Handle image update with WebP conversion
-    if (req.files && req.files.images && req.files.images.length > 0) {
-      const uploadedImages = [];
-      for (const file of req.files.images) {
-        const imagePath = path.resolve(file.path);
-        const uploadResult = await cloudinary.uploader.upload(imagePath, {
-          folder: "products",
-          format: "webp" // 🔥 Convert to WebP
-        });
-        uploadedImages.push(uploadResult.secure_url);
-      }
-      // 🔥 Merge old + new images instead of replacing
-      updatedData.images = [...existingProduct.images, ...uploadedImages];
-    } else {
-      updatedData.images = existingProduct.images; // keep old images if none added
+    // ✅ Handle image update (append new images instead of replacing)
+    // ✅ Handle image update (append new images instead of replacing)
+if (req.files && req.files.images && req.files.images.length > 0) {
+  const uploadedImages = [];
+  for (const file of req.files.images) {
+    const imagePath = path.resolve(file.path);
+    try {
+      const uploadResult = await cloudinary.uploader.upload(imagePath, {
+        folder: "products",
+        format: "webp",
+        resource_type: "image",
+        invalidate: true, // 🔥 fix stale request
+      });
+      uploadedImages.push(uploadResult.secure_url);
+    } catch (cloudErr) {
+      console.error("Cloudinary upload error:", cloudErr);
+      return res.status(500).json({
+        message: "Image upload failed",
+        error: cloudErr.message || "Unknown Cloudinary error"
+      });
     }
+  }
+  updatedData.images = [...existingProduct.images, ...uploadedImages];
+}
+
 
     const updatedProduct = await Product.findByIdAndUpdate(id, updatedData, {
       new: true,
@@ -218,8 +231,8 @@ editProduct: async (req, res) => {
     return res.status(500).json({ message: "Error updating product", error: error.message });
   }
 }
-,
 
+,
 
 
 

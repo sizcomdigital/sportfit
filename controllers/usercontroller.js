@@ -9,6 +9,7 @@ const Product = require('../models/productModel');
 const Cart = require("../models/cartModel");
 const Address = require("../models/addressModel")
 const Category = require("../models/categoryModel")
+const { OAuth2Client } = require("google-auth-library");
 // const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);      
 const Transaction = require("../models/Transaction");
 
@@ -787,5 +788,46 @@ addAddress: async (req, res) => {
   }
 
   res.status(200).send("Webhook received");
+},
+
+login_with_google : async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        // Verify Google Token
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        // Check if user already exists
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Create new user with Google data
+            user = new User({
+                fullname: name,
+                email,
+                googleId,
+                verified: true, // Google emails are already verified
+            });
+            await user.save();
+        }
+
+        // Generate JWT
+        const token = user.generateAuthToken();
+
+        res.status(200).json({
+            message: "User login successful",
+            token,
+            user,
+        });
+    } catch (error) {
+        console.error("Google login error:", error);
+        res.status(400).json({ error: error.message });
+    }
 }
 }

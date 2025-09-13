@@ -49,7 +49,7 @@ router.delete("/delete-address/:addressId", authenticateToken, usercontroller.de
 
 
 
-
+router.post('/googleAuth',authenticateToken,usercontroller.login_with_google);
    
 
 

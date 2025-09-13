@@ -333,7 +333,7 @@
   // -----------------------------
   // Dynamic Category/Subcategory/Child fetch
   // -----------------------------
-  const categorySelect = document.getElementById("category");
+   const categorySelect = document.getElementById("category");
   const subcategorySelect = document.getElementById("subcategory");
   const childSubcategorySelect = document.getElementById("childSubcategory");
 
@@ -357,6 +357,11 @@
           if (sub.name === "<%= product.subcategory %>") opt.selected = true;
           subcategorySelect.appendChild(opt);
         });
+
+        // ✅ Trigger subcategory change if product already has one
+        if ("<%= product.subcategory %>") {
+          subcategorySelect.dispatchEvent(new Event("change"));
+        }
       }
     } catch (err) {
       console.error("Error fetching subcategories:", err);
@@ -392,7 +397,7 @@
     }
   });
 
-  // Trigger initial load for editing product
+  // ✅ Trigger initial load for editing product
   categorySelect.dispatchEvent(new Event("change"));
 </script>
 
